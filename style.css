@@ -1,0 +1,47 @@
+:root {
+  /* Animation */
+  --animation-duration: 300ms;
+}
+
+* {
+  outline: 0;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+canvas {
+  width: 100%;
+  height: 100%;
+}
+
+button {
+  background-color: transparent;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+.fullscreen {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  font-size: 18px;
+  color: #000000;
+  transform: translateX(-50%);
+  transition: color var(--animation-duration) ease;
+}
+
+.fullscreen:hover {
+  color: #6d6d6d;
+}
