@@ -3,6 +3,7 @@ import RotationProjectCover from './rotationProjectCover.js';
 
 export default class AppBuilder {
   static BRIGHTNESS_INTERVAL = 10;
+  static BRIGHTNESS_COUNT = 3;
   static COLOR_LIST = [
     { r: 162, g: 36, b: 30 },
     { r: 53, g: 46, b: 132 },
@@ -17,11 +18,10 @@ export default class AppBuilder {
 
   addProject(title, date) {
     const colorListCount = AppBuilder.COLOR_LIST.length;
-    const brightnessCount = 3;
     const colorIndex =
-      Math.floor(this.#count / brightnessCount) % colorListCount;
+      Math.floor(this.#count / AppBuilder.BRIGHTNESS_COUNT) % colorListCount;
     const brightnessIndex =
-      Math.floor(this.#count % brightnessCount) % colorListCount;
+      Math.floor(this.#count % AppBuilder.BRIGHTNESS_COUNT) % colorListCount;
     const color = AppBuilder.COLOR_LIST[colorIndex];
 
     this.#projectCovers.push(

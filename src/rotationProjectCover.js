@@ -4,10 +4,9 @@ export default class RotationProjectCover {
   static DEGREE_INTERVAL = 10;
   static FPS = 30;
   static FPS_TIME = 1000 / RotationProjectCover.FPS;
-  static WHEEL_UP = -1;
-  static WHEEL_DOWN = 1;
+  static TURN_LEFT = -1;
+  static TURN_RIGHT = 1;
   static INIT_ROTATE_SPEED = 1;
-  static MAX_ROTATE_SPEED_RATIO = 3;
   static CLICK_AREA_SIZE = 100;
   static CLICK_AREA_HALF_SIZE = RotationProjectCover.CLICK_AREA_SIZE / 2;
 
@@ -22,10 +21,8 @@ export default class RotationProjectCover {
   #projectCovers = [];
   #currentDegree = 0;
   #targetDegree = this.#currentDegree;
-  #maxDegree;
   #rotateDirection = 0;
   #rotateSpeed = RotationProjectCover.INIT_ROTATE_SPEED;
-  #prevTime = 0;
   #prevSelectedIndex;
   #coverRects = [];
   #prevRotateState = false;
@@ -49,7 +46,6 @@ export default class RotationProjectCover {
     document.body.append(this.#canvasForMainCover);
 
     window.addEventListener('resize', this.resize);
-    //window.addEventListener('wheel', this.setTargetPerWheel);
     window.addEventListener('click', this.onClickCoverItem);
     this.#fullscreenBtn.addEventListener('click', () => (this.#toBeFilled = true)); // prettier-ignore
     this.#returnBtn.addEventListener('click', this.returnToMainStage);
@@ -74,7 +70,6 @@ export default class RotationProjectCover {
     const coverCount = this.#projectCovers.length;
     this.#prevSelectedIndex = Math.floor(coverCount / 2);
     this.#currentDegree = this.#prevSelectedIndex * RotationProjectCover.DEGREE_INTERVAL; // prettier-ignore
-    this.#maxDegree = coverCount * RotationProjectCover.DEGREE_INTERVAL;
 
     this.resize();
   };
@@ -125,42 +120,10 @@ export default class RotationProjectCover {
   setTargetPerClick = (index) => {
     this.#rotateSpeed = RotationProjectCover.INIT_ROTATE_SPEED;
     this.#rotateDirection = this.#prevSelectedIndex > index
-                              ? RotationProjectCover.WHEEL_UP
-                              : RotationProjectCover.WHEEL_DOWN; // prettier-ignore
+                              ? RotationProjectCover.TURN_LEFT
+                              : RotationProjectCover.TURN_RIGHT; // prettier-ignore
     this.#targetDegree = index * RotationProjectCover.DEGREE_INTERVAL;
     this.#prevSelectedIndex = index;
-  };
-
-  // TODO:: fix this one!
-  setTargetPerWheel = (wheelEvent) => {
-    const direction = wheelEvent.deltaY > 0 
-                        ? RotationProjectCover.WHEEL_DOWN
-                        : RotationProjectCover.WHEEL_UP; // prettier-ignore
-
-    if (this.#rotateDirection == direction) {
-      let temp =
-        (this.#targetDegree +
-          RotationProjectCover.DEGREE_INTERVAL * direction) %
-        361;
-
-      if (0 <= temp && temp < this.#maxDegree) {
-        this.#targetDegree = temp;
-      }
-
-      if (
-        this.#rotateSpeed <
-        RotationProjectCover.INIT_ROTATE_SPEED *
-          RotationProjectCover.MAX_ROTATE_SPEED_RATIO
-      ) {
-        this.#rotateSpeed *= 1.2;
-      }
-
-      return;
-    }
-
-    this.#rotateSpeed = RotationProjectCover.INIT_ROTATE_SPEED;
-    this.#rotateDirection = direction;
-    this.#targetDegree = Math.round(this.#currentDegree / 10 + direction) * 10;
   };
 
   drawCoverItems() {
@@ -268,9 +231,9 @@ export default class RotationProjectCover {
 
   #isRotating() {
     if (
-      (this.#rotateDirection == RotationProjectCover.WHEEL_DOWN &&
+      (this.#rotateDirection == RotationProjectCover.TURN_RIGHT &&
         this.#currentDegree <= this.#targetDegree) ||
-      (this.#rotateDirection == RotationProjectCover.WHEEL_UP &&
+      (this.#rotateDirection == RotationProjectCover.TURN_LEFT &&
         this.#currentDegree >= this.#targetDegree)
     ) {
       return true;
