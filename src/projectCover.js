@@ -1,4 +1,4 @@
-export default class ProjectCover {
+export default class PortfolioCover {
   static COVER_RECT = {
     x: -110,
     y: -150,
@@ -10,8 +10,8 @@ export default class ProjectCover {
   static TEXT_PADDING = 20;
   static MAIN_FONT_WIDTH = 20;
   static MAIN_FONT_SIZE = 30;
-  static SECONDARY_FONT_WIDTH = 8;
-  static SECONDARY_FONT_SIZE = 8;
+  static SUB_FONT_WIDTH = 8;
+  static SUB_FONT_SIZE = 8;
   static SUBTITLE = ['A', 'COLLECTION OF', 'INTERACTIVE', 'HTML 5', 'PROJECT'];
   static CONTACT_LINK = 'github.com/TokenKim92';
   static AUTHOR = 'Token Kim';
@@ -36,15 +36,15 @@ export default class ProjectCover {
   #drawBackground(ctx) {
     ctx.fillStyle = this.#backgroundColor;
     ctx.fillRect(
-      ProjectCover.COVER_RECT.x,
-      ProjectCover.COVER_RECT.y,
-      ProjectCover.COVER_RECT.w,
-      ProjectCover.COVER_RECT.h
+      PortfolioCover.COVER_RECT.x,
+      PortfolioCover.COVER_RECT.y,
+      PortfolioCover.COVER_RECT.w,
+      PortfolioCover.COVER_RECT.h
     );
   }
 
   #drawContents(ctx) {
-    ctx.fillStyle = ProjectCover.FONT_COLOR;
+    ctx.fillStyle = PortfolioCover.FONT_COLOR;
 
     this.#drawTitle(ctx);
     this.#drawSequenceNumber(ctx);
@@ -54,89 +54,89 @@ export default class ProjectCover {
 
   #drawTitle(ctx) {
     ctx.font = `
-    ${ProjectCover.MAIN_FONT_WIDTH} 
-    ${ProjectCover.MAIN_FONT_SIZE}px 
-    ${ProjectCover.FONT_NAME}`;
+    ${PortfolioCover.MAIN_FONT_WIDTH} 
+    ${PortfolioCover.MAIN_FONT_SIZE}px 
+    ${PortfolioCover.FONT_NAME}`;
 
     ctx.textBaseline = 'top';
     ctx.textAlign = 'left';
 
     ctx.fillText(
       this.#title,
-      ProjectCover.COVER_RECT.x + ProjectCover.TEXT_PADDING,
-      ProjectCover.COVER_RECT.y + ProjectCover.TEXT_PADDING * 2
+      PortfolioCover.COVER_RECT.x + PortfolioCover.TEXT_PADDING,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.TEXT_PADDING * 2
     );
   }
 
   #drawSequenceNumber(ctx) {
     ctx.font = `
-    ${ProjectCover.MAIN_FONT_WIDTH} 
-    ${ProjectCover.MAIN_FONT_SIZE}px 
-    ${ProjectCover.FONT_NAME}`;
+    ${PortfolioCover.MAIN_FONT_WIDTH} 
+    ${PortfolioCover.MAIN_FONT_SIZE}px 
+    ${PortfolioCover.FONT_NAME}`;
 
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'left';
 
     ctx.fillText(
       this.#sequenceNumber,
-      ProjectCover.COVER_RECT.x + ProjectCover.TEXT_PADDING, 
-      ProjectCover.COVER_RECT.y + ProjectCover.COVER_RECT.h - ProjectCover.TEXT_PADDING
+      PortfolioCover.COVER_RECT.x + PortfolioCover.TEXT_PADDING, 
+      PortfolioCover.COVER_RECT.y + PortfolioCover.COVER_RECT.h - PortfolioCover.TEXT_PADDING
     ); // prettier-ignore
   }
 
   #drawCreatedDate(ctx) {
     ctx.font = `
-    ${ProjectCover.SECONDARY_FONT_WIDTH} 
-    ${ProjectCover.SECONDARY_FONT_SIZE}px 
-    ${ProjectCover.FONT_NAME}`;
+    ${PortfolioCover.SUB_FONT_WIDTH} 
+    ${PortfolioCover.SUB_FONT_SIZE}px 
+    ${PortfolioCover.FONT_NAME}`;
 
     ctx.textBaseline = `top`;
     ctx.textAlign = 'right';
 
     ctx.fillText(
       this.#createdDate.month,
-      ProjectCover.COVER_RECT.x + ProjectCover.COVER_RECT.w - ProjectCover.TEXT_PADDING,
-      ProjectCover.COVER_RECT.y + ProjectCover.TEXT_PADDING
+      PortfolioCover.COVER_RECT.x + PortfolioCover.COVER_RECT.w - PortfolioCover.TEXT_PADDING,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.TEXT_PADDING
     ); // prettier-ignore
 
     ctx.fillText(
       this.#createdDate.year,
-      ProjectCover.COVER_RECT.x + ProjectCover.COVER_RECT.w - ProjectCover.TEXT_PADDING,
-      ProjectCover.COVER_RECT.y + ProjectCover.TEXT_PADDING + ProjectCover.SECONDARY_FONT_SIZE
+      PortfolioCover.COVER_RECT.x + PortfolioCover.COVER_RECT.w - PortfolioCover.TEXT_PADDING,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.TEXT_PADDING + PortfolioCover.SUB_FONT_SIZE
     ); // prettier-ignore
   }
 
   #drawSubtitle(ctx) {
     ctx.font = `
-    ${ProjectCover.SECONDARY_FONT_WIDTH} 
-    ${ProjectCover.SECONDARY_FONT_SIZE}px 
-    ${ProjectCover.FONT_NAME}`;
+    ${PortfolioCover.SUB_FONT_WIDTH} 
+    ${PortfolioCover.SUB_FONT_SIZE}px 
+    ${PortfolioCover.FONT_NAME}`;
 
     ctx.textBaseline = `bottom`;
     ctx.textAlign = 'right';
 
-    const totalLineCount = ProjectCover.SUBTITLE.length + 3;
+    const totalLineCount = PortfolioCover.SUBTITLE.length + 3;
 
-    ProjectCover.SUBTITLE.forEach((text, index) => {
+    PortfolioCover.SUBTITLE.forEach((text, index) => {
       ctx.fillText(
         text,
-        ProjectCover.COVER_RECT.x + ProjectCover.COVER_RECT.w - ProjectCover.TEXT_PADDING,
-        ProjectCover.COVER_RECT.y + ProjectCover.COVER_RECT.h - ProjectCover.TEXT_PADDING 
-          - ProjectCover.SECONDARY_FONT_SIZE * (totalLineCount - index)
+        PortfolioCover.COVER_RECT.x + PortfolioCover.COVER_RECT.w - PortfolioCover.TEXT_PADDING,
+        PortfolioCover.COVER_RECT.y + PortfolioCover.COVER_RECT.h - PortfolioCover.TEXT_PADDING 
+          - PortfolioCover.SUB_FONT_SIZE * (totalLineCount - index)
       ); // prettier-ignore
     });
 
     ctx.fillText(
-      ProjectCover.CONTACT_LINK,
-      ProjectCover.COVER_RECT.x + ProjectCover.COVER_RECT.w - ProjectCover.TEXT_PADDING,
-      ProjectCover.COVER_RECT.y + ProjectCover.COVER_RECT.h - ProjectCover.TEXT_PADDING 
-        - ProjectCover.SECONDARY_FONT_SIZE * (totalLineCount - ProjectCover.SUBTITLE.length - 1)
+      PortfolioCover.CONTACT_LINK,
+      PortfolioCover.COVER_RECT.x + PortfolioCover.COVER_RECT.w - PortfolioCover.TEXT_PADDING,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.COVER_RECT.h - PortfolioCover.TEXT_PADDING 
+        - PortfolioCover.SUB_FONT_SIZE * (totalLineCount - PortfolioCover.SUBTITLE.length - 1)
     ); // prettier-ignore
 
     ctx.fillText(
-      ProjectCover.AUTHOR,
-      ProjectCover.COVER_RECT.x + ProjectCover.COVER_RECT.w - ProjectCover.TEXT_PADDING,
-      ProjectCover.COVER_RECT.y + ProjectCover.COVER_RECT.h - ProjectCover.TEXT_PADDING
+      PortfolioCover.AUTHOR,
+      PortfolioCover.COVER_RECT.x + PortfolioCover.COVER_RECT.w - PortfolioCover.TEXT_PADDING,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.COVER_RECT.h - PortfolioCover.TEXT_PADDING
     ); // prettier-ignore
   }
 

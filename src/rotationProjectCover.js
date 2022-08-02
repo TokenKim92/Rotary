@@ -1,14 +1,14 @@
 import { posInRect } from './utils.js';
 
-export default class RotationProjectCover {
+export default class RotaryCover {
   static DEGREE_INTERVAL = 10;
   static FPS = 30;
-  static FPS_TIME = 1000 / RotationProjectCover.FPS;
+  static FPS_TIME = 1000 / RotaryCover.FPS;
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
-  static INIT_ROTATE_SPEED = 1;
+  static INIT_ROTARY_SPEED = 1;
   static CLICK_FIELD_SIZE = 100;
-  static CLICK_FIELD_HALF_SIZE = RotationProjectCover.CLICK_FIELD_SIZE / 2;
+  static CLICK_FIELD_HALF_SIZE = RotaryCover.CLICK_FIELD_SIZE / 2;
 
   #canvas;
   #ctx;
@@ -16,16 +16,16 @@ export default class RotationProjectCover {
   #ctxForMainCover;
   #stageWidth;
   #stageHeight;
-  #rotationAxisRadius;
-  #rotationAxisPos;
-  #projectCovers = [];
+  #rotationRadius;
+  #rotationAxis;
+  #covers = [];
   #currentDegree = 0;
   #targetDegree = this.#currentDegree;
-  #rotateDirection = 0;
-  #rotateSpeed = RotationProjectCover.INIT_ROTATE_SPEED;
+  #rotaryDirection = 0;
+  #rotarySpeed = RotaryCover.INIT_ROTARY_SPEED;
   #prevSelectedIndex;
-  #coverRects = [];
-  #prevRotateState = false;
+  #clickFields = [];
+  #prevRotaryState = false;
   #body;
 
   #filledBackgroundWidth = 0;
@@ -34,7 +34,7 @@ export default class RotationProjectCover {
   #returnBtn;
   #toBeFilled = false;
 
-  constructor(projectCovers) {
+  constructor(covers) {
     this.#fullscreenBtn = document.querySelector('.fullscreen');
     this.#returnBtn = document.querySelector('.return');
     this.#body = document.querySelector('body');
@@ -48,38 +48,38 @@ export default class RotationProjectCover {
     document.body.append(this.#canvasForMainCover);
 
     window.addEventListener('resize', this.resize);
-    window.addEventListener('click', this.onClickCoverItem);
-    window.addEventListener('mousemove', this.#changeCursorOnClickField);
+    window.addEventListener('click', this.#onClickCover);
+    window.addEventListener('mousemove', this.#changeCursorShape);
     this.#fullscreenBtn.addEventListener('click', () => (this.#toBeFilled = true)); // prettier-ignore
-    this.#returnBtn.addEventListener('click', this.returnToMainStage);
+    this.#returnBtn.addEventListener('click', this.#returnToMainStage);
 
-    this.onWebFontLoad(projectCovers);
+    this.onWebFontLoad(covers);
   }
 
-  onWebFontLoad = (projectCovers) => {
+  onWebFontLoad = (covers) => {
     WebFont.load({
       google: {
         families: ['Abril Fatface'],
       },
       fontactive: () => {
-        this.onInit(projectCovers);
+        this.#onInit(covers);
       },
     });
   };
 
-  onInit = (projectCovers) => {
-    this.#projectCovers = projectCovers;
+  #onInit = (covers) => {
+    this.#covers = covers;
 
-    const coverCount = this.#projectCovers.length;
+    const coverCount = this.#covers.length;
     this.#prevSelectedIndex = Math.floor(coverCount / 2);
-    this.#currentDegree = this.#prevSelectedIndex * RotationProjectCover.DEGREE_INTERVAL; // prettier-ignore
+    this.#currentDegree = this.#prevSelectedIndex * RotaryCover.DEGREE_INTERVAL;
 
     this.resize();
   };
 
-  returnToMainStage = () => {
+  #returnToMainStage = () => {
     this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-    this.drawCoverItems();
+    this.#drawCoverItems();
     this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
     this.#returnBtn.style.display = 'none';
   };
@@ -94,87 +94,85 @@ export default class RotationProjectCover {
     this.#canvasForMainCover.width = this.#stageWidth;
     this.#canvasForMainCover.height = this.#stageHeight;
 
-    this.#fillBackgroundSpeed =
-      this.#stageHeight / RotationProjectCover.FPS_TIME;
+    this.#fillBackgroundSpeed = this.#stageHeight / RotaryCover.FPS_TIME;
 
-    this.#rotationAxisRadius = this.#stageHeight;
-    this.#rotationAxisPos = {
+    this.#rotationRadius = this.#stageHeight;
+    this.#rotationAxis = {
       x: this.#stageWidth / 2,
       y: (this.#stageHeight / 2) * 3,
     };
 
-    this.drawCoverItems();
+    this.#drawCoverItems();
     this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
 
     window.requestAnimationFrame(this.animate);
   };
 
-  onClickCoverItem = (clickEvent) => {
+  #onClickCover = (clickEvent) => {
     const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
 
-    this.#coverRects.forEach((rect, index) => {
-      if (posInRect(pos, rect)) {
-        this.setTargetPerClick(index);
+    this.#clickFields.forEach((field, index) => {
+      if (posInRect(pos, field)) {
+        this.#setTarget(index);
         return;
       }
     });
   };
 
-  #changeCursorOnClickField = (mousemoveEvent) => {
+  #changeCursorShape = (mousemoveEvent) => {
     if (this.#body.style.cursor === 'pointer') {
       this.#body.style.cursor = 'default';
     }
 
     const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
 
-    this.#coverRects.forEach((rect, index) => {
-      if (posInRect(pos, rect)) {
+    this.#clickFields.forEach((field, index) => {
+      if (posInRect(pos, field)) {
         this.#body.style.cursor = 'pointer';
         return;
       }
     });
   };
 
-  setTargetPerClick = (index) => {
-    this.#rotateSpeed = RotationProjectCover.INIT_ROTATE_SPEED;
-    this.#rotateDirection = this.#prevSelectedIndex > index
-                              ? RotationProjectCover.TURN_LEFT
-                              : RotationProjectCover.TURN_RIGHT; // prettier-ignore
-    this.#targetDegree = index * RotationProjectCover.DEGREE_INTERVAL;
+  #setTarget = (index) => {
+    this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED;
+    this.#rotaryDirection = this.#prevSelectedIndex > index
+                              ? RotaryCover.TURN_LEFT
+                              : RotaryCover.TURN_RIGHT; // prettier-ignore
+    this.#targetDegree = index * RotaryCover.DEGREE_INTERVAL;
     this.#prevSelectedIndex = index;
   };
 
-  drawCoverItems() {
-    this.#coverRects = [];
+  #drawCoverItems() {
+    this.#clickFields = [];
     this.#currentDegree =
-      (this.#currentDegree + this.#rotateSpeed * this.#rotateDirection) % 361;
+      (this.#currentDegree + this.#rotarySpeed * this.#rotaryDirection) % 361;
 
-    this.#projectCovers.forEach((cover, index) => {
-      const degree =
-        RotationProjectCover.DEGREE_INTERVAL * index - this.#currentDegree;
+    this.#covers.forEach((cover, index) => {
+      const degree = RotaryCover.DEGREE_INTERVAL * index - this.#currentDegree;
       const radian = (degree * Math.PI) / 180;
 
       const rotationPos = {
-        x: this.#rotationAxisPos.x + this.#rotationAxisRadius * Math.sin(radian),
-        y: this.#rotationAxisPos.y - this.#rotationAxisRadius * Math.cos(radian)  
+        x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
+        y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
       } // prettier-ignore
 
-      this.drawCover(cover, rotationPos, radian);
-      this.drawTitle(cover, rotationPos, radian);
-      this.setNewClickFields(rotationPos);
+      this.#drawCover(cover, rotationPos, radian);
+      this.#drawTitle(cover, rotationPos, radian);
+      this.#initClickFields(rotationPos);
     });
   }
 
-  setNewClickFields(rotationPos) {
-    this.#coverRects.push({
-      x: rotationPos.x - RotationProjectCover.CLICK_FIELD_HALF_SIZE,
-      y: rotationPos.y - RotationProjectCover.CLICK_FIELD_HALF_SIZE,
-      w: RotationProjectCover.CLICK_FIELD_SIZE,
-      h: RotationProjectCover.CLICK_FIELD_SIZE,
+  #initClickFields(rotationPos) {
+    this.#clickFields.push({
+      x: rotationPos.x - RotaryCover.CLICK_FIELD_HALF_SIZE,
+      y: rotationPos.y - RotaryCover.CLICK_FIELD_HALF_SIZE,
+      w: RotaryCover.CLICK_FIELD_SIZE,
+      h: RotaryCover.CLICK_FIELD_SIZE,
     });
   }
 
-  drawCover(cover, rotationPos, radian) {
+  #drawCover(cover, rotationPos, radian) {
     this.#ctx.save();
 
     this.#ctx.translate(rotationPos.x, rotationPos.y);
@@ -184,7 +182,7 @@ export default class RotationProjectCover {
     this.#ctx.restore();
   }
 
-  drawTitle(cover, rotationPos, radian) {
+  #drawTitle(cover, rotationPos, radian) {
     this.#ctx.save();
 
     const textRadian = (270 * Math.PI) / 180;
@@ -198,6 +196,7 @@ export default class RotationProjectCover {
     this.#ctx.fillText(cover.title, 200, 0);
 
     this.#ctx.fillStyle = '#D0CED0';
+    // TODO:: day should be a variable in the class PortpolioCover
     this.#ctx.fillText(`${cover.createdDate.month}, 11`, 200, 20);
 
     this.#ctx.restore();
@@ -206,18 +205,16 @@ export default class RotationProjectCover {
   animate = (curTime) => {
     if (this.#isRotating()) {
       this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-      this.drawCoverItems();
+      this.#drawCoverItems();
 
-      if (!this.#prevRotateState) {
+      if (!this.#prevRotaryState) {
         this.#ctxForMainCover.clearRect(0, 0, this.#stageWidth, this.#stageHeight); // prettier-ignore
-
-        this.#prevRotateState = true;
+        this.#prevRotaryState = true;
       }
     } else {
-      if (this.#prevRotateState) {
+      if (this.#prevRotaryState) {
         this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
-
-        this.#prevRotateState = false;
+        this.#prevRotaryState = false;
       }
     }
 
@@ -228,13 +225,13 @@ export default class RotationProjectCover {
 
   #scaleSelectedCover(ratio) {
     const degree =
-      RotationProjectCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
+      RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
       this.#currentDegree;
     const radian = (degree * Math.PI) / 180;
 
     const rotationPos = {
-    x: this.#rotationAxisPos.x + this.#rotationAxisRadius * Math.sin(radian),
-    y: this.#rotationAxisPos.y - this.#rotationAxisRadius * Math.cos(radian)  
+    x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
+    y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
   } // prettier-ignore
 
     this.#ctxForMainCover.save();
@@ -242,16 +239,16 @@ export default class RotationProjectCover {
     this.#ctxForMainCover.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
     this.#ctxForMainCover.translate(rotationPos.x, rotationPos.y);
     this.#ctxForMainCover.scale(ratio.x, ratio.y);
-    this.#projectCovers[this.#prevSelectedIndex].animate(this.#ctxForMainCover);
+    this.#covers[this.#prevSelectedIndex].animate(this.#ctxForMainCover);
 
     this.#ctxForMainCover.restore();
   }
 
   #isRotating() {
     if (
-      (this.#rotateDirection == RotationProjectCover.TURN_RIGHT &&
+      (this.#rotaryDirection == RotaryCover.TURN_RIGHT &&
         this.#currentDegree <= this.#targetDegree) ||
-      (this.#rotateDirection == RotationProjectCover.TURN_LEFT &&
+      (this.#rotaryDirection == RotaryCover.TURN_LEFT &&
         this.#currentDegree >= this.#targetDegree)
     ) {
       return true;

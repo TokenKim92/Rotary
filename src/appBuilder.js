@@ -1,5 +1,5 @@
-import ProjectCover from './projectCover.js';
-import RotationProjectCover from './rotationProjectCover.js';
+import PortfolioCover from './projectCover.js';
+import RotaryCover from './rotationProjectCover.js';
 
 export default class AppBuilder {
   static BRIGHTNESS_INTERVAL = 10;
@@ -25,7 +25,7 @@ export default class AppBuilder {
     const color = AppBuilder.COLOR_LIST[colorIndex];
 
     this.#projectCovers.push(
-      new ProjectCover(
+      new PortfolioCover(
         title,
         `0${this.#count + 1}`,
         date,
@@ -42,6 +42,6 @@ export default class AppBuilder {
   }
 
   build() {
-    return new RotationProjectCover(this.#projectCovers);
+    return new RotaryCover(this.#projectCovers);
   }
 }
