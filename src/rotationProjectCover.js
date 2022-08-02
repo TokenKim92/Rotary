@@ -7,8 +7,8 @@ export default class RotationProjectCover {
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
   static INIT_ROTATE_SPEED = 1;
-  static CLICK_AREA_SIZE = 100;
-  static CLICK_AREA_HALF_SIZE = RotationProjectCover.CLICK_AREA_SIZE / 2;
+  static CLICK_FIELD_SIZE = 100;
+  static CLICK_FIELD_HALF_SIZE = RotationProjectCover.CLICK_FIELD_SIZE / 2;
 
   #canvas;
   #ctx;
@@ -26,6 +26,7 @@ export default class RotationProjectCover {
   #prevSelectedIndex;
   #coverRects = [];
   #prevRotateState = false;
+  #body;
 
   #filledBackgroundWidth = 0;
   #fillBackgroundSpeed;
@@ -36,6 +37,7 @@ export default class RotationProjectCover {
   constructor(projectCovers) {
     this.#fullscreenBtn = document.querySelector('.fullscreen');
     this.#returnBtn = document.querySelector('.return');
+    this.#body = document.querySelector('body');
 
     this.#canvas = document.createElement('canvas');
     this.#ctx = this.#canvas.getContext('2d');
@@ -47,6 +49,7 @@ export default class RotationProjectCover {
 
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', this.onClickCoverItem);
+    window.addEventListener('mousemove', this.#changeCursorOnClickField);
     this.#fullscreenBtn.addEventListener('click', () => (this.#toBeFilled = true)); // prettier-ignore
     this.#returnBtn.addEventListener('click', this.returnToMainStage);
 
@@ -107,11 +110,26 @@ export default class RotationProjectCover {
   };
 
   onClickCoverItem = (clickEvent) => {
-    const pos = { x: clickEvent.offsetX, y: clickEvent.offsetY };
+    const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
 
     this.#coverRects.forEach((rect, index) => {
       if (posInRect(pos, rect)) {
         this.setTargetPerClick(index);
+        return;
+      }
+    });
+  };
+
+  #changeCursorOnClickField = (mousemoveEvent) => {
+    if (this.#body.style.cursor === 'pointer') {
+      this.#body.style.cursor = 'default';
+    }
+
+    const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
+
+    this.#coverRects.forEach((rect, index) => {
+      if (posInRect(pos, rect)) {
+        this.#body.style.cursor = 'pointer';
         return;
       }
     });
@@ -143,16 +161,16 @@ export default class RotationProjectCover {
 
       this.drawCover(cover, rotationPos, radian);
       this.drawTitle(cover, rotationPos, radian);
-      this.setNewClickAreas(rotationPos);
+      this.setNewClickFields(rotationPos);
     });
   }
 
-  setNewClickAreas(rotationPos) {
+  setNewClickFields(rotationPos) {
     this.#coverRects.push({
-      x: rotationPos.x - RotationProjectCover.CLICK_AREA_HALF_SIZE,
-      y: rotationPos.y - RotationProjectCover.CLICK_AREA_HALF_SIZE,
-      w: RotationProjectCover.CLICK_AREA_SIZE,
-      h: RotationProjectCover.CLICK_AREA_SIZE,
+      x: rotationPos.x - RotationProjectCover.CLICK_FIELD_HALF_SIZE,
+      y: rotationPos.y - RotationProjectCover.CLICK_FIELD_HALF_SIZE,
+      w: RotationProjectCover.CLICK_FIELD_SIZE,
+      h: RotationProjectCover.CLICK_FIELD_SIZE,
     });
   }
 
