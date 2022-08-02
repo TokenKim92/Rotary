@@ -1,19 +1,22 @@
 import { posInRect } from './utils.js';
+import DetailCover from './detailCover.js';
+import Curtain from './curtain.js';
 
 export default class RotaryCover {
   static DEGREE_INTERVAL = 10;
-  static FPS = 30;
-  static FPS_TIME = 1000 / RotaryCover.FPS;
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
   static INIT_ROTARY_SPEED = 1;
   static CLICK_FIELD_SIZE = 100;
   static CLICK_FIELD_HALF_SIZE = RotaryCover.CLICK_FIELD_SIZE / 2;
+  static INIT_RATIO = 1;
+  static SELECTED_MODE_RATIO = 1.1;
+  static DETAIL_MODE_RATIO = 2;
 
   #canvas;
   #ctx;
-  #canvasForMainCover;
-  #ctxForMainCover;
+  #detailCover;
+  #backgroundCurtain;
   #stageWidth;
   #stageHeight;
   #rotationRadius;
@@ -28,11 +31,10 @@ export default class RotaryCover {
   #prevRotaryState = false;
   #body;
 
-  #filledBackgroundWidth = 0;
-  #fillBackgroundSpeed;
   #fullscreenBtn;
   #returnBtn;
-  #toBeFilled = false;
+  #toBeOpenedBackground = false;
+  #toBeClosedBackground = false;
 
   constructor(covers) {
     this.#fullscreenBtn = document.querySelector('.fullscreen');
@@ -43,18 +45,41 @@ export default class RotaryCover {
     this.#ctx = this.#canvas.getContext('2d');
     document.body.append(this.#canvas);
 
-    this.#canvasForMainCover = document.createElement('canvas');
-    this.#ctxForMainCover = this.#canvasForMainCover.getContext('2d');
-    document.body.append(this.#canvasForMainCover);
+    this.#backgroundCurtain = new Curtain();
+    this.#detailCover = new DetailCover();
 
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', (e) => this.#onMouseInClickField(e, this.#setTarget)); // prettier-ignore
     window.addEventListener('mousemove', this.#changeCursorShape);
-    this.#fullscreenBtn.addEventListener('click', () => (this.#toBeFilled = true)); // prettier-ignore
-    this.#returnBtn.addEventListener('click', this.#returnToMainStage);
+    this.#fullscreenBtn.addEventListener('click', () => (this.#toBeOpenedBackground = true)); // prettier-ignore
+    this.#returnBtn.addEventListener('click', () => (this.#toBeClosedBackground = true)); // prettier-ignore
 
     this.#onWebFontLoad(covers);
   }
+
+  resize = () => {
+    this.#stageWidth = document.body.clientWidth;
+    this.#stageHeight = document.body.clientHeight;
+
+    this.#canvas.width = this.#stageWidth;
+    this.#canvas.height = this.#stageHeight;
+
+    this.#rotationRadius = this.#stageHeight;
+    this.#rotationAxis = {
+      x: this.#stageWidth / 2,
+      y: (this.#stageHeight / 2) * 3,
+    };
+
+    this.#backgroundCurtain.resize(this.#stageWidth, this.#stageHeight);
+    this.#detailCover.resize(this.#stageWidth, this.#stageHeight);
+    this.#drawCoverItems();
+    this.#scaleSelectedCover(
+      RotaryCover.INIT_RATIO,
+      RotaryCover.SELECTED_MODE_RATIO
+    );
+
+    window.requestAnimationFrame(this.animate);
+  };
 
   #onWebFontLoad = (covers) => {
     WebFont.load({
@@ -75,37 +100,6 @@ export default class RotaryCover {
     this.#currentDegree = this.#prevSelectedIndex * RotaryCover.DEGREE_INTERVAL;
 
     this.resize();
-  };
-
-  #returnToMainStage = () => {
-    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-    this.#drawCoverItems();
-    this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
-    this.#returnBtn.style.display = 'none';
-  };
-
-  resize = () => {
-    this.#stageWidth = document.body.clientWidth;
-    this.#stageHeight = document.body.clientHeight;
-
-    this.#canvas.width = this.#stageWidth;
-    this.#canvas.height = this.#stageHeight;
-
-    this.#canvasForMainCover.width = this.#stageWidth;
-    this.#canvasForMainCover.height = this.#stageHeight;
-
-    this.#fillBackgroundSpeed = this.#stageHeight / RotaryCover.FPS_TIME;
-
-    this.#rotationRadius = this.#stageHeight;
-    this.#rotationAxis = {
-      x: this.#stageWidth / 2,
-      y: (this.#stageHeight / 2) * 3,
-    };
-
-    this.#drawCoverItems();
-    this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
-
-    window.requestAnimationFrame(this.animate);
   };
 
   #changeCursorShape = (mousemoveEvent) => {
@@ -198,47 +192,16 @@ export default class RotaryCover {
     this.#ctx.restore();
   }
 
-  animate = (curTime) => {
-    if (this.#isRotating()) {
-      this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-      this.#drawCoverItems();
+  animate = () => {
+    this.#isRotating() ? this.#onRotation() : this.#onNotRotation();
 
-      if (!this.#prevRotaryState) {
-        this.#ctxForMainCover.clearRect(0, 0, this.#stageWidth, this.#stageHeight); // prettier-ignore
-        this.#prevRotaryState = true;
-      }
-    } else {
-      if (this.#prevRotaryState) {
-        this.#scaleSelectedCover({ x: 1.1, y: 1.1 });
-        this.#prevRotaryState = false;
-      }
-    }
+    this.#toBeOpenedBackground && this.#onOpenCurtain();
+    this.#toBeClosedBackground && this.#onCloseCurtain();
 
-    this.#toBeFilled && this.#fillBackground();
+    this.#detailCover.animate();
 
     window.requestAnimationFrame(this.animate);
   };
-
-  #scaleSelectedCover(ratio) {
-    const degree =
-      RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
-      this.#currentDegree;
-    const radian = (degree * Math.PI) / 180;
-
-    const rotationPos = {
-    x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
-    y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
-  } // prettier-ignore
-
-    this.#ctxForMainCover.save();
-
-    this.#ctxForMainCover.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-    this.#ctxForMainCover.translate(rotationPos.x, rotationPos.y);
-    this.#ctxForMainCover.scale(ratio.x, ratio.y);
-    this.#covers[this.#prevSelectedIndex].animate(this.#ctxForMainCover);
-
-    this.#ctxForMainCover.restore();
-  }
 
   #isRotating() {
     if (
@@ -253,17 +216,57 @@ export default class RotaryCover {
     return false;
   }
 
-  #fillBackground() {
-    this.#filledBackgroundWidth += this.#fillBackgroundSpeed;
+  #onRotation() {
+    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
+    this.#drawCoverItems();
 
-    this.#ctx.fillStyle = 'black';
-    this.#ctx.fillRect(0, 0, this.#filledBackgroundWidth, this.#stageHeight);
-
-    if (this.#filledBackgroundWidth >= this.#stageWidth) {
-      this.#scaleSelectedCover({ x: 2, y: 2 });
-      this.#returnBtn.style.display = 'block';
-      this.#filledBackgroundWidth = 0;
-      this.#toBeFilled = false;
+    if (!this.#prevRotaryState) {
+      this.#detailCover.clear();
+      this.#prevRotaryState = true;
     }
+  }
+
+  #onNotRotation() {
+    if (this.#prevRotaryState) {
+      this.#scaleSelectedCover(
+        RotaryCover.INIT_RATIO,
+        RotaryCover.SELECTED_MODE_RATIO
+      );
+      this.#prevRotaryState = false;
+    }
+  }
+
+  #onOpenCurtain() {
+    if (this.#backgroundCurtain.on()) {
+      this.#scaleSelectedCover(
+        RotaryCover.SELECTED_MODE_RATIO,
+        RotaryCover.DETAIL_MODE_RATIO
+      );
+      this.#returnBtn.style.display = 'block';
+      this.#toBeOpenedBackground = false;
+    }
+  }
+
+  #onCloseCurtain() {
+    if (this.#backgroundCurtain.off()) {
+      this.#detailCover.setTargetRatio(1.1);
+      this.#returnBtn.style.display = 'none';
+      this.#toBeClosedBackground = false;
+    }
+  }
+
+  #scaleSelectedCover(startRatio, targetRatio) {
+    const degree =
+      RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
+      this.#currentDegree;
+    const radian = (degree * Math.PI) / 180;
+
+    const rotationPos = {
+      x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
+      y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
+    } // prettier-ignore
+
+    const cover = this.#covers[this.#prevSelectedIndex];
+    this.#detailCover.init(cover, rotationPos, startRatio, targetRatio);
   }
 }
