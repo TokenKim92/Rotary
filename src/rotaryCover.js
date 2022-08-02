@@ -48,15 +48,15 @@ export default class RotaryCover {
     document.body.append(this.#canvasForMainCover);
 
     window.addEventListener('resize', this.resize);
-    window.addEventListener('click', this.#onClickCover);
+    window.addEventListener('click', (e) => this.#onMouseInClickField(e, this.#setTarget)); // prettier-ignore
     window.addEventListener('mousemove', this.#changeCursorShape);
     this.#fullscreenBtn.addEventListener('click', () => (this.#toBeFilled = true)); // prettier-ignore
     this.#returnBtn.addEventListener('click', this.#returnToMainStage);
 
-    this.onWebFontLoad(covers);
+    this.#onWebFontLoad(covers);
   }
 
-  onWebFontLoad = (covers) => {
+  #onWebFontLoad = (covers) => {
     WebFont.load({
       google: {
         families: ['Abril Fatface'],
@@ -108,27 +108,23 @@ export default class RotaryCover {
     window.requestAnimationFrame(this.animate);
   };
 
-  #onClickCover = (clickEvent) => {
-    const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
-
-    this.#clickFields.forEach((field, index) => {
-      if (posInRect(pos, field)) {
-        this.#setTarget(index);
-        return;
-      }
-    });
-  };
-
   #changeCursorShape = (mousemoveEvent) => {
     if (this.#body.style.cursor === 'pointer') {
       this.#body.style.cursor = 'default';
     }
 
-    const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
+    this.#onMouseInClickField(
+      mousemoveEvent,
+      () => (this.#body.style.cursor = 'pointer')
+    );
+  };
 
-    this.#clickFields.forEach((field, index) => {
-      if (posInRect(pos, field)) {
-        this.#body.style.cursor = 'pointer';
+  #onMouseInClickField = (event, handler) => {
+    const pos = { x: event.clientX, y: event.clientY };
+
+    this.#clickFields.forEach((rect, index) => {
+      if (posInRect(pos, rect)) {
+        handler(index);
         return;
       }
     });
