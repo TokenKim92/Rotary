@@ -1,5 +1,5 @@
-import PortfolioCover from './projectCover.js';
-import RotaryCover from './rotationProjectCover.js';
+import PortfolioCover from './portfolioCover.js';
+import RotaryCover from './rotaryCover.js';
 
 export default class AppBuilder {
   static BRIGHTNESS_INTERVAL = 10;
