@@ -54,7 +54,7 @@ export default class RotaryCover {
     this.#detailCover = new DetailCover();
 
     window.addEventListener('resize', this.resize);
-    window.addEventListener('click', (e) => this.#onMouseInClickField(e, this.#setTarget)); // prettier-ignore
+    window.addEventListener('click', this.#moveToSelectedCover); // prettier-ignore
     window.addEventListener('mousemove', this.#changeCursorShape);
     this.#fullscreenBtn.addEventListener('click', this.#openCurtain); // prettier-ignore
     this.#returnBtn.addEventListener('click', this.#closeCurtain);
@@ -87,6 +87,8 @@ export default class RotaryCover {
   };
 
   #openCurtain = () => {
+    window.removeEventListener('click', this.#moveToSelectedCover);
+    window.removeEventListener('mousemove', this.#changeCursorShape);
     this.#bottomButtons.style.display = 'none';
     this.#toBeOpenedCurtain = true;
   };
@@ -118,6 +120,10 @@ export default class RotaryCover {
     this.#currentDegree = this.#prevSelectedIndex * RotaryCover.DEGREE_INTERVAL;
 
     this.resize();
+  };
+
+  #moveToSelectedCover = (clickEvent) => {
+    this.#onMouseInClickField(clickEvent, this.#setTarget);
   };
 
   #changeCursorShape = (mousemoveEvent) => {
@@ -274,6 +280,8 @@ export default class RotaryCover {
       this.#toBeClosedCurtain = false;
       this.#bottomButtons.style.display = 'flex';
       this.#detailCover.setTargetRatio(RotaryCover.SELECTED_MODE_RATIO);
+      window.addEventListener('click', this.#moveToSelectedCover);
+      window.addEventListener('mousemove', this.#changeCursorShape);
     }
   }
 
