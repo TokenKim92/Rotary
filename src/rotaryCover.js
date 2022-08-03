@@ -1,6 +1,7 @@
-import { posInRect } from './utils.js';
+import { PI, posInRect } from './utils.js';
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
+import CircleProgressBar from './circleProgressBar.js';
 
 export default class RotaryCover {
   static DEGREE_INTERVAL = 10;
@@ -18,6 +19,7 @@ export default class RotaryCover {
   #ctx;
   #detailCover;
   #backgroundCurtain;
+  #progressBar = null;
   #stageWidth;
   #stageHeight;
   #rotationRadius;
@@ -52,6 +54,7 @@ export default class RotaryCover {
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
+    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 3);
 
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', this.#moveToSelectedCover); // prettier-ignore
@@ -60,6 +63,8 @@ export default class RotaryCover {
     this.#returnBtn.addEventListener('click', this.#closeCurtain);
 
     this.#onWebFontLoad(covers);
+
+    window.requestAnimationFrame(this.animate);
   }
 
   resize = () => {
@@ -75,16 +80,38 @@ export default class RotaryCover {
       y: (this.#stageHeight / 2) * 3,
     };
 
+    this.#closeCurtain(true);
+
     this.#backgroundCurtain.resize(this.#stageWidth, this.#stageHeight);
     this.#detailCover.resize(this.#stageWidth, this.#stageHeight);
+    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 3);
     this.#drawCoverItems();
     this.#scaleSelectedCover(
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
-
-    window.requestAnimationFrame(this.animate);
   };
+
+  #initProgressBar(colorBackground, colorProgressBar, targetTime) {
+    if (this.#progressBar) {
+      this.#progressBar.clear();
+      this.#progressBar = null;
+    }
+
+    const rect = this.#returnBtn.getBoundingClientRect();
+    const padding = 10;
+
+    this.#progressBar = new CircleProgressBar(
+      rect.width + padding * 2,
+      { background: colorBackground, progressBar: colorProgressBar },
+      targetTime
+    );
+
+    this.#progressBar.setPosition(
+      rect.x - rect.width * 2 - padding,
+      rect.y - padding
+    );
+  }
 
   #openCurtain = () => {
     window.removeEventListener('click', this.#moveToSelectedCover);
@@ -93,12 +120,17 @@ export default class RotaryCover {
     this.#toBeOpenedCurtain = true;
   };
 
-  #closeCurtain = () => {
+  #closeCurtain = (toBeDirect = false) => {
+    this.#progressBar.stop();
+    this.#progressBar.clear();
     this.#leftButtons.classList.remove('left-button-on');
     this.#returnBtn.classList.remove('right-button-on');
-    setTimeout(() => {
-      this.#toBeClosedCurtain = true;
-    }, RotaryCover.BUTTON_APPEAR_DURATION);
+
+    toBeDirect
+      ? (this.#toBeClosedCurtain = true)
+      : setTimeout(() => {
+          this.#toBeClosedCurtain = true;
+        }, RotaryCover.BUTTON_APPEAR_DURATION);
   };
 
   #onWebFontLoad = (covers) => {
@@ -164,7 +196,7 @@ export default class RotaryCover {
 
     this.#covers.forEach((cover, index) => {
       const degree = RotaryCover.DEGREE_INTERVAL * index - this.#currentDegree;
-      const radian = (degree * Math.PI) / 180;
+      const radian = (degree * PI) / 180;
 
       const rotationPos = {
         x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
@@ -199,7 +231,7 @@ export default class RotaryCover {
   #drawTitle(cover, rotationPos, radian) {
     this.#ctx.save();
 
-    const textRadian = (270 * Math.PI) / 180;
+    const textRadian = (270 * PI) / 180;
     this.#ctx.translate(rotationPos.x, rotationPos.y);
     this.#ctx.rotate(radian + textRadian);
 
@@ -216,13 +248,14 @@ export default class RotaryCover {
     this.#ctx.restore();
   }
 
-  animate = () => {
+  animate = (curTime) => {
     this.#isRotating() ? this.#onRotation() : this.#onNotRotation();
 
     this.#toBeOpenedCurtain && this.#onOpenCurtain();
     this.#toBeClosedCurtain && this.#onCloseCurtain();
 
     this.#detailCover.animate();
+    this.#progressBar.animate(curTime);
 
     window.requestAnimationFrame(this.animate);
   };
@@ -271,6 +304,11 @@ export default class RotaryCover {
       setTimeout(() => {
         this.#leftButtons.classList.add('left-button-on');
         this.#returnBtn.classList.add('right-button-on');
+
+        setTimeout(
+          () => this.#progressBar.start(),
+          RotaryCover.BUTTON_APPEAR_DURATION
+        );
       }, RotaryCover.BUTTON_APPEAR_DURATION);
     }
   }
@@ -289,7 +327,7 @@ export default class RotaryCover {
     const degree =
       RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
       this.#currentDegree;
-    const radian = (degree * Math.PI) / 180;
+    const radian = (degree * PI) / 180;
 
     const rotationPos = {
       x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
