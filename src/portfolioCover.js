@@ -15,6 +15,7 @@ export default class PortfolioCover {
   static SUBTITLE = ['A', 'COLLECTION OF', 'INTERACTIVE', 'HTML 5', 'PROJECT'];
   static CONTACT_LINK = 'github.com/TokenKim92';
   static AUTHOR = 'Token Kim';
+  static SHADOW_SIZE = 6;
 
   #title;
   #sequenceNumber;
@@ -29,9 +30,20 @@ export default class PortfolioCover {
   }
 
   animate = (ctx) => {
+    this.#drawShadow(ctx);
     this.#drawBackground(ctx);
     this.#drawContents(ctx);
   };
+
+  #drawShadow(ctx) {
+    ctx.fillStyle = 'rgba(100, 100, 100, 0.05)';
+    ctx.fillRect(
+      PortfolioCover.COVER_RECT.x + PortfolioCover.SHADOW_SIZE,
+      PortfolioCover.COVER_RECT.y + PortfolioCover.SHADOW_SIZE,
+      PortfolioCover.COVER_RECT.w + PortfolioCover.SHADOW_SIZE,
+      PortfolioCover.COVER_RECT.h + PortfolioCover.SHADOW_SIZE
+    );
+  }
 
   #drawBackground(ctx) {
     ctx.fillStyle = this.#backgroundColor;
