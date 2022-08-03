@@ -1,4 +1,10 @@
 :root {
+  /* Size */
+  --title-size: 25px;
+  --button-size: 40px;
+  --button-font-size: 20px;
+  --button-line-height: 30px;
+
   /* Animation */
   --animation-duration: 300ms;
 }
@@ -26,40 +32,97 @@ canvas {
   height: 100%;
 }
 
-button {
-  background-color: transparent;
-  cursor: pointer;
-  border: none;
-  outline: none;
+h1 {
+  font-family: 'Abril Fatface', cursive;
 }
 
-.fullscreen {
+button {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: #6d6d6d;
+
+  transition: all var(--animation-duration) ease;
+}
+
+button:hover {
+  color: #c0c0c0;
+}
+
+.title {
   position: absolute;
   left: 50%;
-  bottom: 10px;
-  font-size: 18px;
-  color: #000000;
+  font-style: italic;
+  font-size: var(--title-size);
   transform: translateX(-50%);
-  transition: color var(--animation-duration) ease;
+}
+
+.left-buttons {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 50%;
+  transform: translate(-100%, -50%);
+  transition: all var(--animation-duration) ease;
   z-index: 1;
 }
 
-.fullscreen:hover {
-  color: #6d6d6d;
+.left-button-on {
+  transform: translate(100%, -50%);
+}
+
+.email,
+.instagram,
+.linkedin {
+  width: var(--button-size);
+  height: var(--button-size);
+  margin: 5px 0;
+  border: 2px solid #6d6d6d;
+  border-radius: 50%;
+  line-height: var(--button-line-height);
+  font-size: var(--button-font-size);
 }
 
 .return {
   position: absolute;
-  right: 20px;
+  width: var(--button-size);
+  height: var(--button-size);
+  right: 0px;
   top: 50%;
-  font-size: 50px;
-  color: #6d6d6d;
-  transform: translateY(-50%);
-  transition: color var(--animation-duration) ease;
+  margin: 5px 0;
+  border: 2px solid #6d6d6d;
+  border-radius: 50%;
+  line-height: var(--button-line-height);
+  font-size: var(--button-font-size);
+  transform: translate(100%, -50%);
+  transition: all var(--animation-duration) ease;
   z-index: 1;
-  display: none;
 }
 
-.return:hover {
-  color: #c0c0c0;
+.right-button-on {
+  transform: translate(-100%, -50%);
+}
+
+.bottom-buttons {
+  position: absolute;
+  display: flex;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.share,
+.fullscreen {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 14px;
+  transition: color var(--animation-duration) ease;
+}
+
+.space {
+  font-family: 'Abril Fatface', cursive;
+  font-size: 16px;
+  color: #6d6d6d;
+  margin: 0 3px;
 }

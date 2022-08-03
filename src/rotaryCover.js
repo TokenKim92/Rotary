@@ -12,6 +12,7 @@ export default class RotaryCover {
   static INIT_RATIO = 1;
   static SELECTED_MODE_RATIO = 1.1;
   static DETAIL_MODE_RATIO = 2;
+  static BUTTON_APPEAR_DURATION = 800;
 
   #canvas;
   #ctx;
@@ -31,14 +32,18 @@ export default class RotaryCover {
   #prevRotaryState = false;
   #body;
 
-  #fullscreenBtn;
+  #leftButtons;
+  #bottomButtons;
   #returnBtn;
-  #toBeOpenedBackground = false;
-  #toBeClosedBackground = false;
+  #fullscreenBtn;
+  #toBeOpenedCurtain = false;
+  #toBeClosedCurtain = false;
 
   constructor(covers) {
-    this.#fullscreenBtn = document.querySelector('.fullscreen');
+    this.#leftButtons = document.querySelector('.left-buttons');
+    this.#bottomButtons = document.querySelector('.bottom-buttons');
     this.#returnBtn = document.querySelector('.return');
+    this.#fullscreenBtn = document.querySelector('.fullscreen');
     this.#body = document.querySelector('body');
 
     this.#canvas = document.createElement('canvas');
@@ -51,8 +56,8 @@ export default class RotaryCover {
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', (e) => this.#onMouseInClickField(e, this.#setTarget)); // prettier-ignore
     window.addEventListener('mousemove', this.#changeCursorShape);
-    this.#fullscreenBtn.addEventListener('click', () => (this.#toBeOpenedBackground = true)); // prettier-ignore
-    this.#returnBtn.addEventListener('click', () => (this.#toBeClosedBackground = true)); // prettier-ignore
+    this.#fullscreenBtn.addEventListener('click', this.#openCurtain); // prettier-ignore
+    this.#returnBtn.addEventListener('click', this.#closeCurtain);
 
     this.#onWebFontLoad(covers);
   }
@@ -79,6 +84,19 @@ export default class RotaryCover {
     );
 
     window.requestAnimationFrame(this.animate);
+  };
+
+  #openCurtain = () => {
+    this.#bottomButtons.style.display = 'none';
+    this.#toBeOpenedCurtain = true;
+  };
+
+  #closeCurtain = () => {
+    this.#leftButtons.classList.remove('left-button-on');
+    this.#returnBtn.classList.remove('right-button-on');
+    setTimeout(() => {
+      this.#toBeClosedCurtain = true;
+    }, RotaryCover.BUTTON_APPEAR_DURATION);
   };
 
   #onWebFontLoad = (covers) => {
@@ -195,8 +213,8 @@ export default class RotaryCover {
   animate = () => {
     this.#isRotating() ? this.#onRotation() : this.#onNotRotation();
 
-    this.#toBeOpenedBackground && this.#onOpenCurtain();
-    this.#toBeClosedBackground && this.#onCloseCurtain();
+    this.#toBeOpenedCurtain && this.#onOpenCurtain();
+    this.#toBeClosedCurtain && this.#onCloseCurtain();
 
     this.#detailCover.animate();
 
@@ -238,20 +256,24 @@ export default class RotaryCover {
 
   #onOpenCurtain() {
     if (this.#backgroundCurtain.on()) {
+      this.#toBeOpenedCurtain = false;
       this.#scaleSelectedCover(
         RotaryCover.SELECTED_MODE_RATIO,
         RotaryCover.DETAIL_MODE_RATIO
       );
-      this.#returnBtn.style.display = 'block';
-      this.#toBeOpenedBackground = false;
+
+      setTimeout(() => {
+        this.#leftButtons.classList.add('left-button-on');
+        this.#returnBtn.classList.add('right-button-on');
+      }, RotaryCover.BUTTON_APPEAR_DURATION);
     }
   }
 
   #onCloseCurtain() {
     if (this.#backgroundCurtain.off()) {
-      this.#detailCover.setTargetRatio(1.1);
-      this.#returnBtn.style.display = 'none';
-      this.#toBeClosedBackground = false;
+      this.#toBeClosedCurtain = false;
+      this.#bottomButtons.style.display = 'flex';
+      this.#detailCover.setTargetRatio(RotaryCover.SELECTED_MODE_RATIO);
     }
   }
 
