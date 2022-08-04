@@ -1,4 +1,4 @@
-import { PI, posInRect } from './utils.js';
+import { PI, INVALID_ID, DONE, posInRect, isDone } from './utils.js';
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
@@ -42,6 +42,11 @@ export default class RotaryCover {
   #toBeOpenedCurtain = false;
   #toBeClosedCurtain = false;
 
+  #prevProgressStatus = DONE;
+  #progressTimeoutID = INVALID_ID;
+  #progressCanceled = false;
+  #isCoverDisappeared = false;
+
   constructor(covers) {
     this.#leftButtons = document.querySelector('.left-buttons');
     this.#bottomButtons = document.querySelector('.bottom-buttons');
@@ -61,8 +66,8 @@ export default class RotaryCover {
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', this.#moveToSelectedCover); // prettier-ignore
     window.addEventListener('mousemove', this.#changeCursorShape);
-    this.#fullscreenBtn.addEventListener('click', this.#openCurtain); // prettier-ignore
-    this.#returnBtn.addEventListener('click', this.#closeCurtain);
+    this.#fullscreenBtn.addEventListener('click', this.#setFullscreenMode); // prettier-ignore
+    this.#returnBtn.addEventListener('click', this.#setSelectMode);
 
     this.#onWebFontLoad(covers);
 
@@ -82,13 +87,13 @@ export default class RotaryCover {
       y: (this.#stageHeight / 2) * 3,
     };
 
-    this.#closeCurtain(true);
+    this.#setSelectMode(true);
 
     this.#backgroundCurtain.resize(this.#stageWidth, this.#stageHeight);
     this.#detailCover.resize(this.#stageWidth, this.#stageHeight);
     this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 3);
     this.#drawCoverItems();
-    this.#scaleSelectedCover(
+    this.#setTargetPosAndRatio(
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
@@ -115,25 +120,34 @@ export default class RotaryCover {
     );
   }
 
-  #openCurtain = () => {
+  #setFullscreenMode = () => {
     window.removeEventListener('click', this.#moveToSelectedCover);
     window.removeEventListener('mousemove', this.#changeCursorShape);
     this.#bottomButtons.style.display = 'none';
     this.#toBeOpenedCurtain = true;
   };
 
-  #closeCurtain = (toBeDirect = false) => {
+  #setSelectMode = (toBeDirect = false) => {
+    this.#isCoverDisappeared = isDone(this.#prevProgressStatus);
+
+    if (this.#progressTimeoutID !== INVALID_ID) {
+      this.#killProgressTimer();
+      this.#isCoverDisappeared = false;
+    }
+
     this.#progressBar.stop();
     this.#progressBar.clear();
+    this.#progressCanceled = true;
+
     this.#leftButtons.classList.remove('left-button-on');
     this.#returnBtn.classList.remove('right-button-on');
-
-    toBeDirect
-      ? (this.#toBeClosedCurtain = true)
-      : setTimeout(() => {
-          this.#toBeClosedCurtain = true;
-        }, RotaryCover.BUTTON_APPEAR_DURATION);
+    this.#setCloseCurtainTimer(toBeDirect);
   };
+
+  #setCloseCurtainTimer(toBeDirect) {
+    toBeDirect ? (this.#toBeClosedCurtain = true)
+               : setTimeout(() => (this.#toBeClosedCurtain = true), RotaryCover.BUTTON_APPEAR_DURATION); // prettier-ignore
+  }
 
   #onWebFontLoad = (covers) => {
     WebFont.load({
@@ -165,10 +179,7 @@ export default class RotaryCover {
       this.#body.style.cursor = 'default';
     }
 
-    this.#onMouseInClickField(
-      mousemoveEvent,
-      () => (this.#body.style.cursor = 'pointer')
-    );
+    this.#onMouseInClickField(mousemoveEvent, () => (this.#body.style.cursor = 'pointer')); // prettier-ignore
   };
 
   #onMouseInClickField = (event, handler) => {
@@ -184,9 +195,8 @@ export default class RotaryCover {
 
   #setTarget = (index) => {
     this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED;
-    this.#rotaryDirection = this.#prevSelectedIndex > index
-                              ? RotaryCover.TURN_LEFT
-                              : RotaryCover.TURN_RIGHT; // prettier-ignore
+    this.#rotaryDirection = this.#prevSelectedIndex > index ? RotaryCover.TURN_LEFT
+                                                            : RotaryCover.TURN_RIGHT; // prettier-ignore
     this.#targetDegree = index * RotaryCover.DEGREE_INTERVAL;
     this.#prevSelectedIndex = index;
   };
@@ -257,22 +267,16 @@ export default class RotaryCover {
     this.#toBeClosedCurtain && this.#onCloseCurtain();
 
     this.#detailCover.animate();
-    this.#progressBar.animate(curTime);
+    this.#onProgressFinished(this.#progressBar.animate(curTime));
 
     window.requestAnimationFrame(this.animate);
   };
 
   #isRotating() {
-    if (
-      (this.#rotaryDirection == RotaryCover.TURN_RIGHT &&
-        this.#currentDegree <= this.#targetDegree) ||
-      (this.#rotaryDirection == RotaryCover.TURN_LEFT &&
-        this.#currentDegree >= this.#targetDegree)
-    ) {
-      return true;
-    }
-
-    return false;
+    return (
+      (this.#rotaryDirection == RotaryCover.TURN_RIGHT && this.#currentDegree <= this.#targetDegree) ||
+      (this.#rotaryDirection == RotaryCover.TURN_LEFT && this.#currentDegree >= this.#targetDegree)
+    ); // prettier-ignore
   }
 
   #onRotation() {
@@ -287,7 +291,7 @@ export default class RotaryCover {
 
   #onNotRotation() {
     if (this.#prevRotaryState) {
-      this.#scaleSelectedCover(
+      this.#setTargetPosAndRatio(
         RotaryCover.INIT_RATIO,
         RotaryCover.SELECTED_MODE_RATIO
       );
@@ -298,34 +302,48 @@ export default class RotaryCover {
   #onOpenCurtain() {
     if (this.#backgroundCurtain.on()) {
       this.#toBeOpenedCurtain = false;
-      this.#scaleSelectedCover(
-        RotaryCover.SELECTED_MODE_RATIO,
-        RotaryCover.DETAIL_MODE_RATIO
-      );
+      this.#setTargetPosAndRatio(RotaryCover.SELECTED_MODE_RATIO, RotaryCover.DETAIL_MODE_RATIO); // prettier-ignore
 
-      setTimeout(() => {
-        this.#leftButtons.classList.add('left-button-on');
-        this.#returnBtn.classList.add('right-button-on');
-
-        setTimeout(
-          () => this.#progressBar.start(),
-          RotaryCover.BUTTON_APPEAR_DURATION
-        );
-      }, RotaryCover.BUTTON_APPEAR_DURATION);
+      this.#setShowButtonTimer();
     }
+  }
+
+  #setShowButtonTimer() {
+    setTimeout(() => {
+      this.#leftButtons.classList.add('left-button-on');
+      this.#returnBtn.classList.add('right-button-on');
+
+      this.#setProgressTimer();
+    }, RotaryCover.BUTTON_APPEAR_DURATION);
+  }
+
+  #setProgressTimer() {
+    this.#progressTimeoutID = setTimeout(() => {
+      this.#progressBar.start();
+      this.#progressTimeoutID = INVALID_ID;
+    }, RotaryCover.BUTTON_APPEAR_DURATION);
+  }
+
+  #killProgressTimer() {
+    clearTimeout(this.#progressTimeoutID);
+    this.#progressTimeoutID = INVALID_ID;
   }
 
   #onCloseCurtain() {
     if (this.#backgroundCurtain.off()) {
+      this.#progressCanceled = false;
       this.#toBeClosedCurtain = false;
       this.#bottomButtons.style.display = 'flex';
-      this.#detailCover.setTargetRatio(RotaryCover.SELECTED_MODE_RATIO);
+
       window.addEventListener('click', this.#moveToSelectedCover);
       window.addEventListener('mousemove', this.#changeCursorShape);
+
+      this.#isCoverDisappeared ? this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO)
+                               : this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
     }
   }
 
-  #scaleSelectedCover(startRatio, targetRatio) {
+  #setTargetPosAndRatio(startRatio, targetRatio) {
     const degree =
       RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
       this.#currentDegree;
@@ -337,6 +355,17 @@ export default class RotaryCover {
     } // prettier-ignore
 
     const cover = this.#covers[this.#prevSelectedIndex];
-    this.#detailCover.init(cover, rotationPos, startRatio, targetRatio);
+
+    this.#detailCover.init(cover, rotationPos);
+    this.#detailCover.setTargetRatio(startRatio, targetRatio);
+  }
+
+  #onProgressFinished(curStatus) {
+    if (!isDone(this.#prevProgressStatus) && isDone(curStatus)) {
+      this.#progressBar.clear();
+      this.#progressCanceled || this.#detailCover.disappearToLeft();
+    }
+
+    this.#prevProgressStatus = curStatus;
   }
 }

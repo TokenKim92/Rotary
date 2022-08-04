@@ -1,5 +1,8 @@
+import PortfolioCover from './portfolioCover.js';
+
 export default class DetailCover {
   static ANIMATION_DURATION = 20; // ms
+  static DISAPPEAR_VELOCITY = 1.1;
 
   #canvas;
   #ctx;
@@ -7,10 +10,15 @@ export default class DetailCover {
   #stageWidth;
   #stageHeight;
   #cover;
-  #rotationPos;
+  #rotationPos = {
+    x: 0,
+    y: 0,
+  };
   #targetRatio;
   #currentRatio = 1;
-  #speed;
+  #scalingSpeed;
+  #targetPosX = 0;
+  #disappearSpeed = 1;
 
   constructor() {
     this.#canvas = document.createElement('canvas');
@@ -32,42 +40,61 @@ export default class DetailCover {
     this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
   }
 
-  init(cover, rotationPos, startRatio, targetRatio) {
+  init(cover, rotationPos) {
     this.#cover = cover;
-    this.#rotationPos = rotationPos;
-    this.#currentRatio = startRatio;
-    this.setTargetRatio(targetRatio);
+    this.#rotationPos = { ...rotationPos };
+    this.#targetPosX = this.#rotationPos.x;
   }
 
   animate() {
-    if (this.#toBeAnimated()) {
-      this.#ctx.save();
-
-      this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-      this.#ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
-      this.#ctx.scale(this.#currentRatio, this.#currentRatio);
-      this.#cover.animate(this.#ctx);
-
-      this.#ctx.restore();
-
-      this.#currentRatio += this.#speed;
-    }
+    this.#toBeScaled() && this.#onScale();
+    this.#toBeDisappear() && this.#onDisappear();
   }
 
-  #toBeAnimated() {
-    if (
-      (this.#speed >= 0 && this.#currentRatio <= this.#targetRatio) ||
-      (this.#speed < 0 && this.#currentRatio > this.#targetRatio)
-    ) {
-      return true;
-    }
+  #onScale() {
+    this.#drawCover();
 
-    return false;
+    this.#currentRatio += this.#scalingSpeed;
   }
 
-  setTargetRatio(ratio) {
-    this.#targetRatio = ratio;
-    this.#speed =
+  #onDisappear() {
+    this.#drawCover();
+
+    this.#disappearSpeed *= DetailCover.DISAPPEAR_VELOCITY;
+    this.#rotationPos.x -= this.#disappearSpeed;
+  }
+
+  #drawCover(x, y) {
+    this.#ctx.save();
+
+    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
+    this.#ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
+    this.#ctx.scale(this.#currentRatio, this.#currentRatio);
+    this.#cover.animate(this.#ctx);
+
+    this.#ctx.restore();
+  }
+
+  #toBeScaled() {
+    return (
+      (this.#scalingSpeed >= 0 && this.#currentRatio <= this.#targetRatio) ||
+      (this.#scalingSpeed < 0 && this.#currentRatio > this.#targetRatio)
+    );
+  }
+
+  #toBeDisappear() {
+    return this.#rotationPos.x > this.#targetPosX;
+  }
+
+  setTargetRatio(startRatio, targetRatio) {
+    this.#currentRatio = startRatio;
+    this.#targetRatio = targetRatio;
+    this.#scalingSpeed =
       (this.#targetRatio - this.#currentRatio) / DetailCover.ANIMATION_DURATION;
+  }
+
+  disappearToLeft() {
+    this.#targetPosX = PortfolioCover.COVER_RECT.w * this.#targetRatio * -1;
+    this.#disappearSpeed = 1;
   }
 }

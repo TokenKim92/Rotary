@@ -1,4 +1,4 @@
-import { PI, PI2 } from './utils.js';
+import { PI, PI2, DONE } from './utils.js';
 
 export default class CircleProgressBar {
   static START_DEGREE = 90;
@@ -22,7 +22,7 @@ export default class CircleProgressBar {
   #progressSpeed;
   #progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
   #prevTime;
-  #progressFinished = true;
+  #progressStatus = DONE;
   #isPreparing = false;
   #alpha = 0;
 
@@ -77,13 +77,13 @@ export default class CircleProgressBar {
 
     if (!this.#prevTime) {
       this.#prevTime = curTime;
-      return this.#progressFinished;
+      return this.#progressStatus;
     }
 
     if (CircleProgressBar.FPS_TIME < curTime - this.#prevTime) {
       this.#onFPSTime();
     }
-    return this.#progressFinished;
+    return this.#progressStatus;
   }
 
   clear() {
@@ -92,7 +92,7 @@ export default class CircleProgressBar {
 
   #onFPSTime() {
     if (this.#progress > CircleProgressBar.TOTAL_PROGRESS_LENGTH) {
-      this.#progressFinished || (this.#progressFinished = true);
+      this.#progressStatus || (this.#progressStatus = DONE);
       return;
     }
 
@@ -100,7 +100,7 @@ export default class CircleProgressBar {
     this.#drawBackground();
     this.#drawProgressBar();
 
-    this.#progressFinished && (this.#progressFinished = false);
+    this.#progressStatus && (this.#progressStatus = !DONE);
   }
 
   #onPrepare() {
@@ -155,11 +155,10 @@ export default class CircleProgressBar {
   }
 
   stop() {
-    this.#progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
-  }
+    this.clear();
 
-  reset() {
-    this.#drawBackground();
+    this.#isPreparing = false;
+    this.#alpha = 1;
     this.#progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
   }
 
