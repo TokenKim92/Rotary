@@ -17,6 +17,7 @@ export default class RotaryCover {
 
   #canvas;
   #ctx;
+  #pixelRatio;
   #detailCover;
   #backgroundCurtain;
   #progressBar = null;
@@ -51,6 +52,7 @@ export default class RotaryCover {
     this.#canvas = document.createElement('canvas');
     this.#ctx = this.#canvas.getContext('2d');
     document.body.append(this.#canvas);
+    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
@@ -71,8 +73,8 @@ export default class RotaryCover {
     this.#stageWidth = document.body.clientWidth;
     this.#stageHeight = document.body.clientHeight;
 
-    this.#canvas.width = this.#stageWidth;
-    this.#canvas.height = this.#stageHeight;
+    this.#canvas.width = this.#stageWidth * this.#pixelRatio;
+    this.#canvas.height = this.#stageHeight * this.#pixelRatio;
 
     this.#rotationRadius = this.#stageHeight;
     this.#rotationAxis = {

@@ -4,6 +4,7 @@ export default class Curtain {
 
   #canvas;
   #ctx;
+  #pixelRatio;
   #stageWidth;
   #stageHeight;
   #filledWidth;
@@ -14,6 +15,8 @@ export default class Curtain {
     this.#ctx = this.#canvas.getContext('2d');
     document.body.append(this.#canvas);
 
+    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
+
     this.#ctx.fillStyle = 'black';
   }
 
@@ -21,8 +24,8 @@ export default class Curtain {
     this.#stageWidth = stageWidth;
     this.#stageHeight = stageHeight;
 
-    this.#canvas.width = this.#stageWidth;
-    this.#canvas.height = this.#stageHeight;
+    this.#canvas.width = this.#stageWidth * this.#pixelRatio;
+    this.#canvas.height = this.#stageHeight * this.#pixelRatio;
 
     this.#filledWidth = 0;
     this.#fillSpeed = this.#stageWidth / Curtain.FPS_TIME;
