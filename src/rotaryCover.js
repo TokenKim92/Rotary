@@ -1,7 +1,17 @@
-import { PI, INVALID_ID, DONE, posInRect, isDone } from './utils.js';
+import {
+  PI,
+  INVALID_ID,
+  DONE,
+  posInRect,
+  isDone,
+  isInvalidID,
+} from './utils.js';
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
+
+// Test
+import DotKineticText from '../../KineticTypography01/src/dotKineticText.js';
 
 export default class RotaryCover {
   static DEGREE_INTERVAL = 10;
@@ -43,9 +53,13 @@ export default class RotaryCover {
   #toBeClosedCurtain = false;
 
   #prevProgressStatus = DONE;
-  #progressTimeoutID = INVALID_ID;
+  #progressTimerID = INVALID_ID;
   #progressCanceled = false;
   #isCoverDisappeared = false;
+
+  #loadedProject = null;
+  #prevDisappearStatus = DONE;
+  #loadProjectTimerID = INVALID_ID;
 
   constructor(covers) {
     this.#leftButtons = document.querySelector('.left-buttons');
@@ -61,7 +75,7 @@ export default class RotaryCover {
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
-    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 3);
+    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
 
     window.addEventListener('resize', this.resize);
     window.addEventListener('click', this.#moveToSelectedCover); // prettier-ignore
@@ -91,12 +105,14 @@ export default class RotaryCover {
 
     this.#backgroundCurtain.resize(this.#stageWidth, this.#stageHeight);
     this.#detailCover.resize(this.#stageWidth, this.#stageHeight);
-    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 3);
+    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
     this.#drawCoverItems();
     this.#setTargetPosAndRatio(
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
+
+    this.#loadedProject && this.#loadedProject.resize();
   };
 
   #initProgressBar(colorBackground, colorProgressBar, targetTime) {
@@ -128,9 +144,12 @@ export default class RotaryCover {
   };
 
   #setSelectMode = (toBeDirect = false) => {
+    isInvalidID(this.#loadProjectTimerID) || this.#killLoadProjectTimer();
+    this.#loadedProject && this.#removeLoadedProject();
+
     this.#isCoverDisappeared = isDone(this.#prevProgressStatus);
 
-    if (this.#progressTimeoutID !== INVALID_ID) {
+    if (!isInvalidID(this.#progressTimerID)) {
       this.#killProgressTimer();
       this.#isCoverDisappeared = false;
     }
@@ -266,8 +285,13 @@ export default class RotaryCover {
     this.#toBeOpenedCurtain && this.#onOpenCurtain();
     this.#toBeClosedCurtain && this.#onCloseCurtain();
 
-    this.#detailCover.animate();
-    this.#onProgressFinished(this.#progressBar.animate(curTime));
+    const animationStatus = this.#detailCover.animate();
+    this.#onDisappearFinished(animationStatus.disappearStatus);
+
+    const progressStatus = this.#progressBar.animate(curTime);
+    this.#onProgressFinished(progressStatus);
+
+    this.#loadedProject && this.#loadedProject.animate(curTime);
 
     window.requestAnimationFrame(this.animate);
   };
@@ -291,10 +315,7 @@ export default class RotaryCover {
 
   #onNotRotation() {
     if (this.#prevRotaryState) {
-      this.#setTargetPosAndRatio(
-        RotaryCover.INIT_RATIO,
-        RotaryCover.SELECTED_MODE_RATIO
-      );
+      this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
       this.#prevRotaryState = false;
     }
   }
@@ -318,15 +339,15 @@ export default class RotaryCover {
   }
 
   #setProgressTimer() {
-    this.#progressTimeoutID = setTimeout(() => {
+    this.#progressTimerID = setTimeout(() => {
       this.#progressBar.start();
-      this.#progressTimeoutID = INVALID_ID;
+      this.#progressTimerID = INVALID_ID;
     }, RotaryCover.BUTTON_APPEAR_DURATION);
   }
 
   #killProgressTimer() {
-    clearTimeout(this.#progressTimeoutID);
-    this.#progressTimeoutID = INVALID_ID;
+    clearTimeout(this.#progressTimerID);
+    this.#progressTimerID = INVALID_ID;
   }
 
   #onCloseCurtain() {
@@ -367,5 +388,46 @@ export default class RotaryCover {
     }
 
     this.#prevProgressStatus = curStatus;
+  }
+
+  #onDisappearFinished(curStatus) {
+    if (!isDone(this.#prevDisappearStatus) && isDone(curStatus)) {
+      this.#startLoadProjectTimer();
+    }
+    this.#prevDisappearStatus = curStatus;
+  }
+
+  #startLoadProjectTimer() {
+    this.#loadProjectTimerID = setTimeout(() => {
+      this.#LoadProject();
+      this.#loadProjectTimerID = INVALID_ID;
+    }, RotaryCover.BUTTON_APPEAR_DURATION);
+  }
+
+  #killLoadProjectTimer() {
+    clearTimeout(this.#loadProjectTimerID);
+    this.#loadProjectTimerID = INVALID_ID;
+  }
+
+  #LoadProject() {
+    const dotRadius = 8;
+    const rippleSpeed = 4;
+    const fontFormat = { width: 800, size: 500, name: 'Arial' };
+
+    this.#loadedProject = new DotKineticText(
+      dotRadius,
+      rippleSpeed,
+      fontFormat,
+      'JS'
+    );
+
+    this.#loadedProject.resize();
+  }
+
+  #removeLoadedProject() {
+    if (this.#loadedProject) {
+      this.#loadedProject.destroy();
+      this.#loadedProject = null;
+    }
   }
 }

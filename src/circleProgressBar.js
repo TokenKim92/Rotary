@@ -1,4 +1,4 @@
-import { PI, PI2, DONE } from './utils.js';
+import { PI, PI2, DONE, colorToRGB } from './utils.js';
 
 export default class CircleProgressBar {
   static START_DEGREE = 90;
@@ -36,7 +36,7 @@ export default class CircleProgressBar {
     this.#lineWidth = CircleProgressBar.INIT_LINE_WIDTH;
     this.#radius = length / 2 - this.#lineWidth / 2 - 2;
     this.#stageLength = length;
-    this.#colorBackground = this.#colorToRGB(color.background);
+    this.#colorBackground = colorToRGB(color.background);
     this.#colorProgressBar = color.progressBar;
     this.#progressSpeed =
       (CircleProgressBar.TOTAL_PROGRESS_LENGTH * CircleProgressBar.FPS_TIME) /
@@ -51,25 +51,6 @@ export default class CircleProgressBar {
 
     this.#canvas.width = length * this.#pixelRatio;
     this.#canvas.height = length * this.#pixelRatio;
-  }
-
-  #colorToRGB(color) {
-    const colorName = color.toLowerCase();
-
-    if (colorName.includes('rgb')) {
-      const openBracketIndex = colorName.indexOf('(');
-      const closeBracketIndex = colorName.indexOf(')');
-
-      const colorList = colorName
-        .substring(openBracketIndex + 1, closeBracketIndex)
-        .split(', ');
-
-      return {
-        r: colorList[0],
-        g: colorList[1],
-        b: colorList[2],
-      };
-    }
   }
 
   animate(curTime) {

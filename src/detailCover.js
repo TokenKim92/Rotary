@@ -1,3 +1,4 @@
+import { DONE, isDone } from './utils.js';
 import PortfolioCover from './portfolioCover.js';
 
 export default class DetailCover {
@@ -47,8 +48,13 @@ export default class DetailCover {
   }
 
   animate() {
-    this.#toBeScaled() && this.#onScale();
-    this.#toBeDisappear() && this.#onDisappear();
+    isDone(this.#scaleStatus) || this.#onScale();
+    isDone(this.#disappearStatus) || this.#onDisappear();
+
+    return {
+      scaleStatus: this.#scaleStatus,
+      disappearStatus: this.#disappearStatus,
+    };
   }
 
   #onScale() {
@@ -75,15 +81,18 @@ export default class DetailCover {
     this.#ctx.restore();
   }
 
-  #toBeScaled() {
-    return (
+  get #scaleStatus() {
+    const status = !(
       (this.#scalingSpeed >= 0 && this.#currentRatio <= this.#targetRatio) ||
       (this.#scalingSpeed < 0 && this.#currentRatio > this.#targetRatio)
     );
+
+    return status ? DONE : !DONE;
   }
 
-  #toBeDisappear() {
-    return this.#rotationPos.x > this.#targetPosX;
+  get #disappearStatus() {
+    const status = this.#rotationPos.x <= this.#targetPosX;
+    return status ? DONE : !DONE;
   }
 
   setTargetRatio(startRatio, targetRatio) {

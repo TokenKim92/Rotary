@@ -18,3 +18,26 @@ export function posInRect(pos, rect) {
 export function isDone(status) {
   return status === DONE;
 }
+
+export function isInvalidID(id) {
+  return id === INVALID_ID;
+}
+
+export function colorToRGB(color) {
+  const colorName = color.toLowerCase();
+
+  if (colorName.includes('rgb')) {
+    const openBracketIndex = colorName.indexOf('(');
+    const closeBracketIndex = colorName.indexOf(')');
+
+    const colorList = colorName
+      .substring(openBracketIndex + 1, closeBracketIndex)
+      .split(', ');
+
+    return {
+      r: colorList[0],
+      g: colorList[1],
+      b: colorList[2],
+    };
+  }
+}
