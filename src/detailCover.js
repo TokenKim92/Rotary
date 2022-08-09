@@ -21,10 +21,6 @@ export default class DetailCover extends BaseCanvas {
     super(true);
   }
 
-  resize() {
-    super.resize();
-  }
-
   init(cover, rotationPos) {
     this.#cover = cover;
     this.#rotationPos = { ...rotationPos };

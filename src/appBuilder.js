@@ -13,6 +13,7 @@ export default class AppBuilder {
     { r: 165, g: 124, b: 1 },
   ];
 
+  #app = null;
   #count = 0;
   #projectCovers = [];
 
@@ -42,6 +43,13 @@ export default class AppBuilder {
   }
 
   build() {
-    return new RotaryCover(this.#projectCovers);
+    this.#app = new RotaryCover(this.#projectCovers);
+    window.requestAnimationFrame(this.animate);
+    return this.#app;
   }
+
+  animate = (curTime) => {
+    this.#app && this.#app.animate(curTime);
+    window.requestAnimationFrame(this.animate);
+  };
 }

@@ -1,19 +1,13 @@
-import {
-  PI,
-  INVALID_ID,
-  DONE,
-  posInRect,
-  isDone,
-  isInvalidID,
-} from './utils.js';
+import { PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID } from './utils.js'; // prettier-ignore
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
+import BaseCanvas from '../lib/baseCanvas.js';
 
 // Test
 import DotKineticText from '../../KineticTypography01/src/dotKineticText.js';
 
-export default class RotaryCover {
+export default class RotaryCover extends BaseCanvas {
   static DEGREE_INTERVAL = 10;
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
@@ -25,14 +19,9 @@ export default class RotaryCover {
   static DETAIL_MODE_RATIO = 2;
   static BUTTON_APPEAR_DURATION = 800;
 
-  #canvas;
-  #ctx;
-  #pixelRatio;
   #detailCover;
   #backgroundCurtain;
   #progressBar = null;
-  #stageWidth;
-  #stageHeight;
   #rotationRadius;
   #rotationAxis;
   #covers = [];
@@ -62,16 +51,13 @@ export default class RotaryCover {
   #loadProjectTimerID = INVALID_ID;
 
   constructor(covers) {
+    super(true);
+
     this.#leftButtons = document.querySelector('.left-buttons');
     this.#bottomButtons = document.querySelector('.bottom-buttons');
     this.#returnBtn = document.querySelector('.return');
     this.#fullscreenBtn = document.querySelector('.fullscreen');
     this.#body = document.querySelector('body');
-
-    this.#canvas = document.createElement('canvas');
-    this.#ctx = this.#canvas.getContext('2d');
-    document.body.append(this.#canvas);
-    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
@@ -84,27 +70,21 @@ export default class RotaryCover {
     this.#returnBtn.addEventListener('click', this.#setSelectMode);
 
     this.#onWebFontLoad(covers);
-
-    window.requestAnimationFrame(this.animate);
   }
 
   resize = () => {
-    this.#stageWidth = document.body.clientWidth;
-    this.#stageHeight = document.body.clientHeight;
+    super.resize();
 
-    this.#canvas.width = this.#stageWidth * this.#pixelRatio;
-    this.#canvas.height = this.#stageHeight * this.#pixelRatio;
-
-    this.#rotationRadius = this.#stageHeight;
+    this.#rotationRadius = this.stageHeight;
     this.#rotationAxis = {
-      x: this.#stageWidth / 2,
-      y: (this.#stageHeight / 2) * 3,
+      x: this.stageWidth / 2,
+      y: (this.stageHeight / 2) * 3,
     };
 
     this.#setSelectMode(true);
 
-    this.#backgroundCurtain.resize(this.#stageWidth, this.#stageHeight);
-    this.#detailCover.resize(this.#stageWidth, this.#stageHeight);
+    this.#backgroundCurtain.resize();
+    this.#detailCover.resize();
     this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
     this.#drawCoverItems();
     this.#setTargetPosAndRatio(
@@ -122,10 +102,12 @@ export default class RotaryCover {
     }
 
     const rect = this.#returnBtn.getBoundingClientRect();
-    const padding = 10;
+    const padding = 10 * this.pixelRatio;
+    const lengthByPixelRatio =
+      rect.width / this.pixelRatio + padding * (2 / this.pixelRatio);
 
     this.#progressBar = new CircleProgressBar(
-      rect.width + padding * 2,
+      lengthByPixelRatio,
       { background: colorBackground, progressBar: colorProgressBar },
       targetTime
     );
@@ -250,36 +232,36 @@ export default class RotaryCover {
   }
 
   #drawCover(cover, rotationPos, radian) {
-    this.#ctx.save();
+    this.saveCanvas();
 
-    this.#ctx.translate(rotationPos.x, rotationPos.y);
-    this.#ctx.rotate(radian);
-    cover.animate(this.#ctx);
+    this.translate(rotationPos.x, rotationPos.y);
+    this.rotate(radian);
+    this.animateTarget(cover);
 
-    this.#ctx.restore();
+    this.restoreCanvas();
   }
 
   #drawTitle(cover, rotationPos, radian) {
-    this.#ctx.save();
+    this.saveCanvas();
 
     const textRadian = (270 * PI) / 180;
-    this.#ctx.translate(rotationPos.x, rotationPos.y);
-    this.#ctx.rotate(radian + textRadian);
+    this.translate(rotationPos.x, rotationPos.y);
+    this.rotate(radian + textRadian);
 
     // TODO:: use static variable!
-    this.#ctx.font = '10 20px Arial';
-    this.#ctx.textAlign = 'left';
-    this.#ctx.fillStyle = '#BEBCBE';
-    this.#ctx.fillText(cover.title, 200, 0);
+    this.setFont('10 20px Arial');
+    this.setTextAlign('left');
+    this.setFillStyle('#BEBCBE');
+    this.fillText(cover.title, 200, 0);
 
-    this.#ctx.fillStyle = '#D0CED0';
+    this.setFillStyle('#D0CED0');
     // TODO:: day should be a variable in the class PortpolioCover
-    this.#ctx.fillText(`${cover.createdDate.month}, 11`, 200, 20);
+    this.fillText(`${cover.createdDate.month}, 11`, 200, 20);
 
-    this.#ctx.restore();
+    this.restoreCanvas();
   }
 
-  animate = (curTime) => {
+  animate(curTime) {
     this.#isRotating() ? this.#onRotation() : this.#onNotRotation();
 
     this.#toBeOpenedCurtain && this.#onOpenCurtain();
@@ -292,9 +274,7 @@ export default class RotaryCover {
     this.#onProgressFinished(progressStatus);
 
     this.#loadedProject && this.#loadedProject.animate(curTime);
-
-    window.requestAnimationFrame(this.animate);
-  };
+  }
 
   #isRotating() {
     return (
@@ -304,7 +284,7 @@ export default class RotaryCover {
   }
 
   #onRotation() {
-    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
+    this.clearCanvas();
     this.#drawCoverItems();
 
     if (!this.#prevRotaryState) {
