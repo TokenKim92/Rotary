@@ -1,15 +1,11 @@
 import { DONE, isDone } from './utils.js';
 import PortfolioCover from './portfolioCover.js';
+import BaseCanvas from '../lib/baseCanvas.js';
 
-export default class DetailCover {
+export default class DetailCover extends BaseCanvas {
   static ANIMATION_DURATION = 20; // ms
   static DISAPPEAR_VELOCITY = 1.1;
 
-  #canvas;
-  #ctx;
-  #pixelRatio;
-  #stageWidth;
-  #stageHeight;
   #cover;
   #rotationPos = {
     x: 0,
@@ -22,23 +18,11 @@ export default class DetailCover {
   #disappearSpeed = 1;
 
   constructor() {
-    this.#canvas = document.createElement('canvas');
-    this.#ctx = this.#canvas.getContext('2d');
-    document.body.append(this.#canvas);
-
-    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
+    super();
   }
 
-  resize = (stageWidth, stageHeight) => {
-    this.#stageWidth = stageWidth;
-    this.#stageHeight = stageHeight;
-
-    this.#canvas.width = this.#stageWidth * this.#pixelRatio;
-    this.#canvas.height = this.#stageHeight * this.#pixelRatio;
-  };
-
-  clear() {
-    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
+  resize() {
+    super.resize();
   }
 
   init(cover, rotationPos) {
@@ -71,14 +55,14 @@ export default class DetailCover {
   }
 
   #drawCover(x, y) {
-    this.#ctx.save();
+    this.saveCanvas();
 
-    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-    this.#ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
-    this.#ctx.scale(this.#currentRatio, this.#currentRatio);
-    this.#cover.animate(this.#ctx);
+    this.clearCanvas();
+    this.ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
+    this.ctx.scale(this.#currentRatio, this.#currentRatio);
+    this.#cover.animate(this.ctx);
 
-    this.#ctx.restore();
+    this.restoreCanvas();
   }
 
   get #scaleStatus() {
