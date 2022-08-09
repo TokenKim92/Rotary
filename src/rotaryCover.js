@@ -117,7 +117,7 @@ export default class RotaryCover {
 
   #initProgressBar(colorBackground, colorProgressBar, targetTime) {
     if (this.#progressBar) {
-      this.#progressBar.clear();
+      this.#progressBar.clearCanvas();
       this.#progressBar = null;
     }
 
@@ -155,7 +155,7 @@ export default class RotaryCover {
     }
 
     this.#progressBar.stop();
-    this.#progressBar.clear();
+    this.#progressBar.clearCanvas();
     this.#progressCanceled = true;
 
     this.#leftButtons.classList.remove('left-button-on');
@@ -383,7 +383,7 @@ export default class RotaryCover {
 
   #onProgressFinished(curStatus) {
     if (!isDone(this.#prevProgressStatus) && isDone(curStatus)) {
-      this.#progressBar.clear();
+      this.#progressBar.clearCanvas();
       this.#progressCanceled || this.#detailCover.disappearToLeft();
     }
 

@@ -1,6 +1,7 @@
 import { PI, PI2, DONE, colorToRGB } from './utils.js';
+import BaseCanvas from '../lib/baseCanvas.js';
 
-export default class CircleProgressBar {
+export default class CircleProgressBar extends BaseCanvas {
   static START_DEGREE = 90;
   static START_RADIAN = (-CircleProgressBar.START_DEGREE * PI) / 180;
   static FPS = 60;
@@ -10,12 +11,8 @@ export default class CircleProgressBar {
   static INIT_LINE_WIDTH = 5;
   static ALPHA_INCREASING_SPEED = 0.03;
 
-  #canvas;
-  #ctx;
-  #pixelRatio;
   #centerPos;
   #radius;
-  #stageLength;
   #lineWidth;
   #colorBackground;
   #colorProgressBar;
@@ -27,7 +24,8 @@ export default class CircleProgressBar {
   #alpha = 0;
 
   constructor(length, color, targetSecond) {
-    this.#initCanvas(length);
+    super();
+    super.resize(length, length);
 
     this.#centerPos = {
       x: length / 2,
@@ -35,22 +33,11 @@ export default class CircleProgressBar {
     };
     this.#lineWidth = CircleProgressBar.INIT_LINE_WIDTH;
     this.#radius = length / 2 - this.#lineWidth / 2 - 2;
-    this.#stageLength = length;
     this.#colorBackground = colorToRGB(color.background);
     this.#colorProgressBar = color.progressBar;
     this.#progressSpeed =
       (CircleProgressBar.TOTAL_PROGRESS_LENGTH * CircleProgressBar.FPS_TIME) /
       (targetSecond * 1000);
-  }
-
-  #initCanvas(length) {
-    this.#canvas = document.createElement('canvas');
-    this.#ctx = this.#canvas.getContext('2d');
-    document.body.append(this.#canvas);
-    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
-
-    this.#canvas.width = length * this.#pixelRatio;
-    this.#canvas.height = length * this.#pixelRatio;
   }
 
   animate(curTime) {
@@ -61,23 +48,19 @@ export default class CircleProgressBar {
       return this.#progressStatus;
     }
 
-    if (CircleProgressBar.FPS_TIME < curTime - this.#prevTime) {
-      this.#onFPSTime();
-    }
+    const isOnFPSTime = CircleProgressBar.FPS_TIME < curTime - this.#prevTime;
+    isOnFPSTime && this.#drawProgress();
+
     return this.#progressStatus;
   }
 
-  clear() {
-    this.#ctx.clearRect(0, 0, this.#stageLength, this.#stageLength);
-  }
-
-  #onFPSTime() {
+  #drawProgress() {
     if (this.#progress > CircleProgressBar.TOTAL_PROGRESS_LENGTH) {
       this.#progressStatus || (this.#progressStatus = DONE);
       return;
     }
 
-    this.clear();
+    this.clearCanvas();
     this.#drawBackground();
     this.#drawProgressBar();
 
@@ -86,7 +69,7 @@ export default class CircleProgressBar {
 
   #onPrepare() {
     this.#alpha += CircleProgressBar.ALPHA_INCREASING_SPEED;
-    this.clear();
+    this.clearCanvas();
     this.#drawBackground();
 
     if (this.#alpha >= 1) {
@@ -96,38 +79,33 @@ export default class CircleProgressBar {
   }
 
   #drawProgressBar() {
-    this.#ctx.save();
+    const radian = ((this.#progress - CircleProgressBar.START_DEGREE) * PI) / 180; // prettier-ignore
+    this.#drawCircle(this.#colorProgressBar, this.#lineWidth, CircleProgressBar.START_RADIAN, radian); // prettier-ignore
 
-    this.#ctx.strokeStyle = this.#colorProgressBar;
-    this.#ctx.lineWidth = this.#lineWidth;
-    const radian =
-      ((this.#progress - CircleProgressBar.START_DEGREE) * PI) / 180;
-
-    this.#ctx.beginPath();
-    this.#ctx.arc(
-      this.#centerPos.x,
-      this.#centerPos.y,
-      this.#radius,
-      CircleProgressBar.START_RADIAN,
-      radian
-    );
-    this.#ctx.stroke();
-
-    this.#ctx.restore();
     this.#progress += this.#progressSpeed;
   }
 
   #drawBackground() {
-    this.#ctx.save();
+    const backgroundColor = `rgba(
+      ${this.#colorBackground.r}, 
+      ${this.#colorBackground.g}, 
+      ${this.#colorBackground.b}, 
+      ${this.#alpha})`;
 
-    this.#ctx.strokeStyle = `rgba(${this.#colorBackground.r}, ${this.#colorBackground.g}, ${this.#colorBackground.b}, ${this.#alpha})`; // prettier-ignore
-    this.#ctx.lineWidth = this.#lineWidth - 1;
+    this.#drawCircle(backgroundColor, this.#lineWidth - 1, 0, PI2);
+  }
 
-    this.#ctx.beginPath();
-    this.#ctx.arc(this.#centerPos.x, this.#centerPos.y, this.#radius, 0, PI2);
-    this.#ctx.stroke();
+  #drawCircle(color, lineWidth, startAngle, endAngle) {
+    this.saveCanvas();
 
-    this.#ctx.restore();
+    this.setStrokeStyle(color);
+    this.setLineWidth(lineWidth);
+
+    this.beginPath();
+    this.arc(this.#centerPos.x, this.#centerPos.y, this.#radius, startAngle, endAngle); // prettier-ignore
+    this.stroke();
+
+    this.restoreCanvas();
   }
 
   start() {
@@ -136,20 +114,10 @@ export default class CircleProgressBar {
   }
 
   stop() {
-    this.clear();
+    this.clearCanvas();
 
     this.#isPreparing = false;
     this.#alpha = 1;
     this.#progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
-  }
-
-  set lineWidth(lineWidth) {
-    this.#lineWidth = lineWidth;
-    this.#radius = this.#stageLength / 2 - this.#lineWidth / 2 - 2;
-  }
-
-  setPosition(x, y) {
-    this.#canvas.style.left = `${x}px`;
-    this.#canvas.style.top = `${y}px`;
   }
 }
