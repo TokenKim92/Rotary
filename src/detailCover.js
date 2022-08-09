@@ -60,7 +60,7 @@ export default class DetailCover extends BaseCanvas {
     this.clearCanvas();
     this.translate(this.#rotationPos.x, this.#rotationPos.y);
     this.scale(this.#currentRatio, this.#currentRatio);
-    this.#cover.animate(this.ctx);
+    this.animateTarget(this.#cover);
 
     this.restoreCanvas();
   }
