@@ -1,47 +1,37 @@
-export default class Curtain {
+import BaseCanvas from '../lib/baseCanvas.js';
+
+export default class Curtain extends BaseCanvas {
   static FPS = 30;
   static FPS_TIME = 1000 / Curtain.FPS;
 
-  #canvas;
-  #ctx;
-  #pixelRatio;
-  #stageWidth;
-  #stageHeight;
   #filledWidth;
   #fillSpeed;
 
   constructor() {
-    this.#canvas = document.createElement('canvas');
-    this.#ctx = this.#canvas.getContext('2d');
-    document.body.append(this.#canvas);
-
-    this.#pixelRatio = window.devicePixelRatio > 1 ? 2 : 1;
-
-    this.#ctx.fillStyle = 'black';
+    super(true);
   }
 
-  resize = (stageWidth, stageHeight) => {
-    this.#stageWidth = stageWidth;
-    this.#stageHeight = stageHeight;
-
-    this.#canvas.width = this.#stageWidth * this.#pixelRatio;
-    this.#canvas.height = this.#stageHeight * this.#pixelRatio;
+  resize() {
+    super.resize();
 
     this.#filledWidth = 0;
-    this.#fillSpeed = this.#stageWidth / Curtain.FPS_TIME;
-  };
+    this.#fillSpeed = this.stageWidth / Curtain.FPS_TIME;
+  }
 
   on() {
+    this.saveCanvas();
+    this.fillStyle = 'black';
     this.#filledWidth += this.#fillSpeed;
-    this.#ctx.fillRect(0, 0, this.#filledWidth, this.#stageHeight);
+    this.fillRect(0, 0, this.#filledWidth, this.stageHeight);
+    this.restoreCanvas();
 
-    return this.#filledWidth >= this.#stageWidth ? true : false;
+    return this.#filledWidth >= this.stageWidth ? true : false;
   }
 
   off() {
     this.#filledWidth -= this.#fillSpeed;
-    this.#ctx.clearRect(0, 0, this.#stageWidth, this.#stageHeight);
-    this.#ctx.fillRect(0, 0, this.#filledWidth, this.#stageHeight);
+    this.clearCanvas();
+    this.fillRect(0, 0, this.#filledWidth, this.stageHeight);
 
     return this.#filledWidth <= 0 ? true : false;
   }

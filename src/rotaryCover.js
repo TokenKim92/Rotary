@@ -308,7 +308,7 @@ export default class RotaryCover {
     this.#drawCoverItems();
 
     if (!this.#prevRotaryState) {
-      this.#detailCover.clear();
+      this.#detailCover.clearCanvas();
       this.#prevRotaryState = true;
     }
   }

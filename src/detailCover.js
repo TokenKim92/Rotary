@@ -18,7 +18,7 @@ export default class DetailCover extends BaseCanvas {
   #disappearSpeed = 1;
 
   constructor() {
-    super();
+    super(true);
   }
 
   resize() {
@@ -58,8 +58,8 @@ export default class DetailCover extends BaseCanvas {
     this.saveCanvas();
 
     this.clearCanvas();
-    this.ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
-    this.ctx.scale(this.#currentRatio, this.#currentRatio);
+    this.translate(this.#rotationPos.x, this.#rotationPos.y);
+    this.scale(this.#currentRatio, this.#currentRatio);
     this.#cover.animate(this.ctx);
 
     this.restoreCanvas();
