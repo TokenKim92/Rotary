@@ -45,6 +45,7 @@ button {
   background-color: transparent;
   cursor: pointer;
   color: #6d6d6d;
+  z-index: 1;
 
   transition: all var(--animation-duration) ease;
 }

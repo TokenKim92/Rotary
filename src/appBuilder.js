@@ -16,8 +16,9 @@ export default class AppBuilder {
   #app = null;
   #count = 0;
   #projectCovers = [];
+  #instances = [];
 
-  addProject(title, date) {
+  addProject(title, date, instance) {
     const colorListCount = AppBuilder.COLOR_LIST.length;
     const colorIndex =
       Math.floor(this.#count / AppBuilder.BRIGHTNESS_COUNT) % colorListCount;
@@ -39,11 +40,13 @@ export default class AppBuilder {
 
     this.#count++;
 
+    this.#instances.push(instance);
+
     return this;
   }
 
   build() {
-    this.#app = new RotaryCover(this.#projectCovers);
+    this.#app = new RotaryCover(this.#projectCovers, this.#instances);
     window.requestAnimationFrame(this.animate);
     return this.#app;
   }

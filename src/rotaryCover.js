@@ -4,9 +4,6 @@ import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
 import BaseCanvas from '../lib/baseCanvas.js';
 
-// Test
-import DotKineticText from '../../KineticTypography01/src/dotKineticText.js';
-
 export default class RotaryCover extends BaseCanvas {
   static DEGREE_INTERVAL = 10;
   static TURN_LEFT = -1;
@@ -50,7 +47,9 @@ export default class RotaryCover extends BaseCanvas {
   #prevDisappearStatus = DONE;
   #loadProjectTimerID = INVALID_ID;
 
-  constructor(covers) {
+  #instances = [];
+
+  constructor(covers, instances) {
     super(true);
 
     this.#leftButtons = document.querySelector('.left-buttons');
@@ -70,6 +69,9 @@ export default class RotaryCover extends BaseCanvas {
     this.#returnBtn.addEventListener('click', this.#setSelectMode);
 
     this.#onWebFontLoad(covers);
+
+    this.#instances = instances;
+    this.#instances.forEach((instance) => instance.removeFromStage());
   }
 
   resize = () => {
@@ -390,23 +392,15 @@ export default class RotaryCover extends BaseCanvas {
   }
 
   #LoadProject() {
-    const dotRadius = 8;
-    const rippleSpeed = 4;
-    const fontFormat = { width: 800, size: 500, name: 'Arial' };
-
-    this.#loadedProject = new DotKineticText(
-      dotRadius,
-      rippleSpeed,
-      fontFormat,
-      'JS'
-    );
-
+    this.#loadedProject = this.#instances[this.#prevSelectedIndex];
+    this.#loadedProject.bringToStage();
     this.#loadedProject.resize();
   }
 
   #removeLoadedProject() {
     if (this.#loadedProject) {
-      this.#loadedProject.destroy();
+      this.#loadedProject.clearCanvas();
+      this.#loadedProject.removeFromStage();
       this.#loadedProject = null;
     }
   }
