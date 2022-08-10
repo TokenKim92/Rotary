@@ -1,7 +1,48 @@
-import PortfolioCover from './portfolioCover.js';
-import RotaryCover from './rotaryCover.js';
+import PortfolioCover from './src/portfolioCover.js';
+import RotaryCover from './src/rotaryCover.js';
+import FontFormat from './lib/fontFormat.js';
+import './lib/kt-dot.min.js';
+import './lib/duplication.min.js';
 
-export default class AppBuilder {
+window.onload = () => {
+  const imageList = [];
+  let imageCount = 0;
+  const imageUrls = [
+    './imgs/gogh1.jpg',
+    './imgs/gogh2.jpg',
+    './imgs/gogh3.jpg',
+  ];
+
+  imageUrls.forEach((imageUrl) => {
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+      imageList.push(img);
+      imageCount++;
+
+      if (imageCount === imageUrls.length) {
+        createApp();
+      }
+    };
+  });
+
+  function createApp() {
+    new AppBuilder()
+      .addProject(
+        'KT-Dot',
+        { month: 'JULY', year: '2022' },
+        new kt.Dot('Arial', 'JS')
+      )
+      .addProject(
+        'Duplication',
+        { month: 'JULY', year: '2022' },
+        new DuplicateDraw(imageList)
+      )
+      .build();
+  }
+};
+
+class AppBuilder {
   static BRIGHTNESS_INTERVAL = 10;
   static BRIGHTNESS_COUNT = 3;
   static COLOR_LIST = [

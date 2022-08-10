@@ -49,7 +49,10 @@ export default class CircleProgressBar extends BaseCanvas {
     }
 
     const isOnFPSTime = CircleProgressBar.FPS_TIME < curTime - this.#prevTime;
-    isOnFPSTime && this.#drawProgress();
+    if (isOnFPSTime) {
+      this.#drawProgress();
+      this.#prevTime = curTime;
+    }
 
     return this.#progressStatus;
   }
