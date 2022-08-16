@@ -1,6 +1,5 @@
 import PortfolioCover from './src/portfolioCover.js';
 import RotaryCover from './src/rotaryCover.js';
-import FontFormat from './lib/fontFormat.js';
 import './lib/kt-dot.min.js';
 import './lib/duplication.min.js';
 

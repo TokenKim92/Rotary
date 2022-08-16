@@ -73,7 +73,7 @@ button:hover {
 }
 
 .left-button-on {
-  transform: translate(100%, -50%);
+  transform: translate(70%, -50%);
 }
 
 .email,
@@ -105,7 +105,7 @@ button:hover {
 }
 
 .right-button-on {
-  transform: translate(-100%, -50%);
+  transform: translate(-70%, -50%);
 }
 
 .bottom-buttons {

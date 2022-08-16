@@ -6,6 +6,7 @@ import BaseCanvas from '../lib/baseCanvas.js';
 
 export default class RotaryCover extends BaseCanvas {
   static DEGREE_INTERVAL = 10;
+  static MEDIA_DEGREE_INTERVAL = RotaryCover.DEGREE_INTERVAL / 2;
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
   static INIT_ROTARY_SPEED = 1;
@@ -168,7 +169,9 @@ export default class RotaryCover extends BaseCanvas {
 
     const coverCount = this.#covers.length;
     this.#prevSelectedIndex = Math.floor(coverCount / 2);
-    this.#currentDegree = this.#prevSelectedIndex * RotaryCover.DEGREE_INTERVAL;
+    const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
+                                             : RotaryCover.DEGREE_INTERVAL; // prettier-ignore
+    this.#currentDegree = this.#prevSelectedIndex * degreeInterval;
 
     this.resize();
   };
@@ -200,7 +203,9 @@ export default class RotaryCover extends BaseCanvas {
     this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED;
     this.#rotaryDirection = this.#prevSelectedIndex > index ? RotaryCover.TURN_LEFT
                                                             : RotaryCover.TURN_RIGHT; // prettier-ignore
-    this.#targetDegree = index * RotaryCover.DEGREE_INTERVAL;
+    const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
+                                             : RotaryCover.DEGREE_INTERVAL; // prettier-ignore
+    this.#targetDegree = index * degreeInterval;
     this.#prevSelectedIndex = index;
   };
 
@@ -210,7 +215,9 @@ export default class RotaryCover extends BaseCanvas {
       (this.#currentDegree + this.#rotarySpeed * this.#rotaryDirection) % 361;
 
     this.#covers.forEach((cover, index) => {
-      const degree = RotaryCover.DEGREE_INTERVAL * index - this.#currentDegree;
+      const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
+                                               : RotaryCover.DEGREE_INTERVAL; // prettier-ignore
+      const degree = degreeInterval * index - this.#currentDegree;
       const radian = (degree * PI) / 180;
 
       const rotationPos = {
@@ -238,7 +245,8 @@ export default class RotaryCover extends BaseCanvas {
 
     this.translate(rotationPos.x, rotationPos.y);
     this.rotate(radian);
-    this.animateTarget(cover);
+    this.isMatchMedia && this.scale(0.7, 0.7);
+    this.animateTarget(cover.animate);
 
     this.restoreCanvas();
   }
@@ -247,11 +255,12 @@ export default class RotaryCover extends BaseCanvas {
     this.saveCanvas();
 
     const textRadian = (270 * PI) / 180;
-    this.translate(rotationPos.x, rotationPos.y);
+    const posY = this.isMatchMedia ? rotationPos.y * 1.15 : rotationPos.y;
+    this.translate(rotationPos.x, posY);
     this.rotate(radian + textRadian);
 
-    // TODO:: use static variable!
-    this.setFont('10 20px Arial');
+    const fontSize = this.isMatchMedia ? 18 : 20;
+    this.setFont(`10 ${fontSize}px Arial`);
     this.setTextAlign('left');
     this.setFillStyle('#BEBCBE');
     this.fillText(cover.title, 200, 0);
@@ -347,9 +356,10 @@ export default class RotaryCover extends BaseCanvas {
   }
 
   #setTargetPosAndRatio(startRatio, targetRatio) {
+    const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
+                                             : RotaryCover.DEGREE_INTERVAL; // prettier-ignore
     const degree =
-      RotaryCover.DEGREE_INTERVAL * this.#prevSelectedIndex -
-      this.#currentDegree;
+      degreeInterval * this.#prevSelectedIndex - this.#currentDegree;
     const radian = (degree * PI) / 180;
 
     const rotationPos = {
