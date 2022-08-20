@@ -3,24 +3,24 @@ import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
 import BaseCanvas from '../lib/baseCanvas.js';
+import PortfolioCover from './portfolioCover.js';
 
 export default class RotaryCover extends BaseCanvas {
+  static INIT_RATIO = 1;
+  static SMALL_MODE_RATIO = 0.7;
+  static SELECTED_MODE_RATIO = 1.1;
+  static DETAIL_MODE_RATIO = 2;
   static DEGREE_INTERVAL = 10;
-  static MEDIA_DEGREE_INTERVAL = RotaryCover.DEGREE_INTERVAL / 2;
+  static MEDIA_DEGREE_INTERVAL = RotaryCover.DEGREE_INTERVAL * RotaryCover.SMALL_MODE_RATIO; // prettier-ignore
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
   static INIT_ROTARY_SPEED = 1;
-  static CLICK_FIELD_SIZE = 100;
-  static CLICK_FIELD_HALF_SIZE = RotaryCover.CLICK_FIELD_SIZE / 2;
-  static INIT_RATIO = 1;
-  static SELECTED_MODE_RATIO = 1.1;
-  static DETAIL_MODE_RATIO = 2;
   static BUTTON_APPEAR_DURATION = 800;
   static PROGRESS_BAR_PADDING = 10;
 
   #detailCover;
   #backgroundCurtain;
-  #progressBar = null;
+  #progressBar;
   #rotationRadius;
   #rotationAxis;
   #covers = [];
@@ -50,10 +50,6 @@ export default class RotaryCover extends BaseCanvas {
   #loadProjectTimerID = INVALID_ID;
 
   #instances = [];
-  #btnVisiblePos = {
-    x: 70,
-    y: 50,
-  };
 
   constructor(covers, instances) {
     super(true);
@@ -98,6 +94,7 @@ export default class RotaryCover extends BaseCanvas {
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
+    this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED * this.#ratioPerWidth;
 
     this.#instances.forEach((instance) => instance.resize());
   };
@@ -133,8 +130,8 @@ export default class RotaryCover extends BaseCanvas {
     this.#progressBar.clearCanvas();
     this.#progressCanceled = true;
 
-    this.#leftButtons.style.transform = `translate(-100%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
-    this.#returnBtn.style.transform = `translate(100%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
+    this.#leftButtons.style.transform = `translate(-100%, -50%)`;
+    this.#returnBtn.style.transform = `translate(100%, -50%)`;
     this.#setCloseCurtainTimer(toBeDirect);
   };
 
@@ -190,7 +187,6 @@ export default class RotaryCover extends BaseCanvas {
   };
 
   #setTarget = (index) => {
-    this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED;
     this.#rotaryDirection = this.#prevSelectedIndex > index ? RotaryCover.TURN_LEFT
                                                             : RotaryCover.TURN_RIGHT; // prettier-ignore
     const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
@@ -222,12 +218,23 @@ export default class RotaryCover extends BaseCanvas {
   }
 
   #initClickFields(rotationPos) {
+    const width = PortfolioCover.COVER_RECT.w * this.#ratioPerWidth;
+    const height = PortfolioCover.COVER_RECT.h * this.#ratioPerWidth;
     this.#clickFields.push({
-      x: rotationPos.x - RotaryCover.CLICK_FIELD_HALF_SIZE,
-      y: rotationPos.y - RotaryCover.CLICK_FIELD_HALF_SIZE,
-      w: RotaryCover.CLICK_FIELD_SIZE,
-      h: RotaryCover.CLICK_FIELD_SIZE,
+      x: rotationPos.x - width / 2,
+      y: rotationPos.y - height / 2,
+      w: width,
+      h: height,
     });
+  }
+
+  get #ratioPerWidth() {
+    switch (this.sizeMode) {
+      case BaseCanvas.SMALL_MODE:
+        return RotaryCover.SMALL_MODE_RATIO;
+      default:
+        return 1;
+    }
   }
 
   #drawCover(cover, rotationPos, radian) {
@@ -235,7 +242,7 @@ export default class RotaryCover extends BaseCanvas {
 
     this.translate(rotationPos.x, rotationPos.y);
     this.rotate(radian);
-    this.isMatchMedia && this.scale(0.7, 0.7);
+    this.isMatchMedia && this.scale(RotaryCover.SMALL_MODE_RATIO, RotaryCover.SMALL_MODE_RATIO); // prettier-ignore
     this.animateTarget(cover.animate);
 
     this.restoreCanvas();
@@ -312,11 +319,12 @@ export default class RotaryCover extends BaseCanvas {
 
   #setShowButtonTimer() {
     setTimeout(() => {
-      this.#leftButtons.style.transform = `translate(${this.#btnVisiblePos.x}%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
-      this.#returnBtn.style.transform = `translate(-${this.#btnVisiblePos.x}%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
+      const btnVisiblePosX = this.isMatchMedia ? 20 : 100;
+      this.#leftButtons.style.transform = `translate(${btnVisiblePosX}%, -50%)`;
+      this.#returnBtn.style.transform = `translate(-${btnVisiblePosX}%, -50%)`;
 
       const rect = this.#returnBtn.getBoundingClientRect();
-      const ratio = 1 + this.#btnVisiblePos.x / 100;
+      const ratio = 1 + btnVisiblePosX / 100;
       this.#progressBar.setPosition(
         rect.x - rect.width * ratio - RotaryCover.PROGRESS_BAR_PADDING,
         rect.y - RotaryCover.PROGRESS_BAR_PADDING
