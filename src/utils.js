@@ -2,6 +2,7 @@ export const PI = Math.PI;
 export const PI2 = Math.PI * 2;
 export const INVALID_ID = -1;
 export const DONE = true;
+export const SMALL_MODE_RATIO = 0.7;
 
 export function posInRect(pos, rect) {
   if (

@@ -1,4 +1,4 @@
-import { DONE, isDone } from './utils.js';
+import { DONE, isDone, SMALL_MODE_RATIO } from './utils.js';
 import PortfolioCover from './portfolioCover.js';
 import BaseCanvas from '../lib/baseCanvas.js';
 
@@ -51,15 +51,15 @@ export default class DetailCover extends BaseCanvas {
   }
 
   #drawCover(x, y) {
-    this.saveCanvas();
+    this.ctx.save();
 
     this.clearCanvas();
-    this.translate(this.#rotationPos.x, this.#rotationPos.y);
-    this.isMatchMedia && this.scale(0.7, 0.7);
-    this.scale(this.#currentRatio, this.#currentRatio);
-    this.animateTarget(this.#cover.animate);
+    this.ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
+    this.isMatchMedia && this.ctx.scale(SMALL_MODE_RATIO, SMALL_MODE_RATIO);
+    this.ctx.scale(this.#currentRatio, this.#currentRatio);
+    this.#cover.animate(this.ctx);
 
-    this.restoreCanvas();
+    this.ctx.restore();
   }
 
   get #scaleStatus() {

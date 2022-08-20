@@ -1,4 +1,4 @@
-import { PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID } from './utils.js'; // prettier-ignore
+import { PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID, SMALL_MODE_RATIO } from './utils.js'; // prettier-ignore
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
@@ -7,11 +7,10 @@ import PortfolioCover from './portfolioCover.js';
 
 export default class RotaryCover extends BaseCanvas {
   static INIT_RATIO = 1;
-  static SMALL_MODE_RATIO = 0.7;
   static SELECTED_MODE_RATIO = 1.1;
   static DETAIL_MODE_RATIO = 2;
   static DEGREE_INTERVAL = 10;
-  static MEDIA_DEGREE_INTERVAL = RotaryCover.DEGREE_INTERVAL * RotaryCover.SMALL_MODE_RATIO; // prettier-ignore
+  static MEDIA_DEGREE_INTERVAL = RotaryCover.DEGREE_INTERVAL * SMALL_MODE_RATIO; // prettier-ignore
   static TURN_LEFT = -1;
   static TURN_RIGHT = 1;
   static INIT_ROTARY_SPEED = 1;
@@ -231,42 +230,42 @@ export default class RotaryCover extends BaseCanvas {
   get #ratioPerWidth() {
     switch (this.sizeMode) {
       case BaseCanvas.SMALL_MODE:
-        return RotaryCover.SMALL_MODE_RATIO;
+        return SMALL_MODE_RATIO;
       default:
         return 1;
     }
   }
 
   #drawCover(cover, rotationPos, radian) {
-    this.saveCanvas();
+    this.ctx.save();
 
-    this.translate(rotationPos.x, rotationPos.y);
-    this.rotate(radian);
-    this.isMatchMedia && this.scale(RotaryCover.SMALL_MODE_RATIO, RotaryCover.SMALL_MODE_RATIO); // prettier-ignore
-    this.animateTarget(cover.animate);
+    this.ctx.translate(rotationPos.x, rotationPos.y);
+    this.ctx.rotate(radian);
+    this.isMatchMedia && this.ctx.scale(SMALL_MODE_RATIO, SMALL_MODE_RATIO); // prettier-ignore
+    cover.animate(this.ctx);
 
-    this.restoreCanvas();
+    this.ctx.restore();
   }
 
   #drawTitle(cover, rotationPos, radian) {
-    this.saveCanvas();
+    this.ctx.save();
 
     const textRadian = (270 * PI) / 180;
     const posY = this.isMatchMedia ? rotationPos.y * 1.15 : rotationPos.y;
-    this.translate(rotationPos.x, posY);
-    this.rotate(radian + textRadian);
+    this.ctx.translate(rotationPos.x, posY);
+    this.ctx.rotate(radian + textRadian);
 
     const fontSize = this.isMatchMedia ? 18 : 20;
-    this.setFont(`10 ${fontSize}px Arial`);
-    this.setTextAlign('left');
-    this.setFillStyle('#BEBCBE');
-    this.fillText(cover.title, 200, 0);
+    this.ctx.font = `10 ${fontSize}px Arial`;
+    this.ctx.textAlign = 'left';
+    this.ctx.illStyle = '#BEBCBE';
+    this.ctx.fillText(cover.title, 200, 0);
 
-    this.setFillStyle('#D0CED0');
+    this.ctx.fillStyle = '#D0CED0';
     // TODO:: day should be a variable in the class PortpolioCover
-    this.fillText(`${cover.createdDate.month}, 11`, 200, 20);
+    this.ctx.fillText(`${cover.createdDate.month}, 11`, 200, 20);
 
-    this.restoreCanvas();
+    this.ctx.restore();
   }
 
   animate(curTime) {

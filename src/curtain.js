@@ -19,11 +19,11 @@ export default class Curtain extends BaseCanvas {
   }
 
   on() {
-    this.saveCanvas();
-    this.fillStyle = 'black';
+    this.ctx.save();
+    this.ctx.fillStyle = 'black';
     this.#filledWidth += this.#fillSpeed;
-    this.fillRect(0, 0, this.#filledWidth, this.stageHeight);
-    this.restoreCanvas();
+    this.ctx.fillRect(0, 0, this.#filledWidth, this.stageHeight);
+    this.ctx.restore();
 
     return this.#filledWidth >= this.stageWidth ? true : false;
   }
@@ -31,7 +31,7 @@ export default class Curtain extends BaseCanvas {
   off() {
     this.#filledWidth -= this.#fillSpeed;
     this.clearCanvas();
-    this.fillRect(0, 0, this.#filledWidth, this.stageHeight);
+    this.ctx.fillRect(0, 0, this.#filledWidth, this.stageHeight);
 
     return this.#filledWidth <= 0 ? true : false;
   }

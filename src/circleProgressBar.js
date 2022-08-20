@@ -99,16 +99,16 @@ export default class CircleProgressBar extends BaseCanvas {
   }
 
   #drawCircle(color, lineWidth, startAngle, endAngle) {
-    this.saveCanvas();
+    this.ctx.save();
 
-    this.setStrokeStyle(color);
-    this.setLineWidth(lineWidth);
+    this.ctx.strokeStyle = color;
+    this.ctx.lineWidth = lineWidth;
 
-    this.beginPath();
-    this.arc(this.#centerPos.x, this.#centerPos.y, this.#radius, startAngle, endAngle); // prettier-ignore
-    this.stroke();
+    this.ctx.beginPath();
+    this.ctx.arc(this.#centerPos.x, this.#centerPos.y, this.#radius, startAngle, endAngle); // prettier-ignore
+    this.ctx.stroke();
 
-    this.restoreCanvas();
+    this.ctx.restore();
   }
 
   start() {
