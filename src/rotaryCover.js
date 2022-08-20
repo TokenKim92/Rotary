@@ -16,6 +16,7 @@ export default class RotaryCover extends BaseCanvas {
   static SELECTED_MODE_RATIO = 1.1;
   static DETAIL_MODE_RATIO = 2;
   static BUTTON_APPEAR_DURATION = 800;
+  static PROGRESS_BAR_PADDING = 10;
 
   #detailCover;
   #backgroundCurtain;
@@ -49,6 +50,10 @@ export default class RotaryCover extends BaseCanvas {
   #loadProjectTimerID = INVALID_ID;
 
   #instances = [];
+  #btnVisiblePos = {
+    x: 70,
+    y: 50,
+  };
 
   constructor(covers, instances) {
     super(true);
@@ -61,12 +66,12 @@ export default class RotaryCover extends BaseCanvas {
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
-    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
+    this.#createProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
 
     window.addEventListener('resize', this.resize);
-    window.addEventListener('click', this.#moveToSelectedCover); // prettier-ignore
+    window.addEventListener('click', this.#moveToSelectedCover);
     window.addEventListener('mousemove', this.#changeCursorShape);
-    this.#fullscreenBtn.addEventListener('click', this.#setFullscreenMode); // prettier-ignore
+    this.#fullscreenBtn.addEventListener('click', this.#setFullscreenMode);
     this.#returnBtn.addEventListener('click', this.#setSelectMode);
 
     this.#onWebFontLoad(covers);
@@ -88,36 +93,21 @@ export default class RotaryCover extends BaseCanvas {
 
     this.#backgroundCurtain.resize();
     this.#detailCover.resize();
-    this.#initProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
     this.#drawCoverItems();
     this.#setTargetPosAndRatio(
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
 
-    this.#loadedProject && this.#loadedProject.resize();
+    this.#instances.forEach((instance) => instance.resize());
   };
 
-  #initProgressBar(colorBackground, colorProgressBar, targetTime) {
-    if (this.#progressBar) {
-      this.#progressBar.clearCanvas();
-      this.#progressBar = null;
-    }
-
-    const rect = this.#returnBtn.getBoundingClientRect();
-    const padding = 10 * this.pixelRatio;
-    const lengthByPixelRatio =
-      rect.width / this.pixelRatio + padding * (2 / this.pixelRatio);
-
+  #createProgressBar(colorBackground, colorProgressBar, targetTime) {
+    const width = this.#returnBtn.getBoundingClientRect().width;
     this.#progressBar = new CircleProgressBar(
-      lengthByPixelRatio,
+      width + RotaryCover.PROGRESS_BAR_PADDING * 2,
       { background: colorBackground, progressBar: colorProgressBar },
       targetTime
-    );
-
-    this.#progressBar.setPosition(
-      rect.x - rect.width * 2 - padding,
-      rect.y - padding
     );
   }
 
@@ -143,8 +133,8 @@ export default class RotaryCover extends BaseCanvas {
     this.#progressBar.clearCanvas();
     this.#progressCanceled = true;
 
-    this.#leftButtons.classList.remove('left-button-on');
-    this.#returnBtn.classList.remove('right-button-on');
+    this.#leftButtons.style.transform = `translate(-100%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
+    this.#returnBtn.style.transform = `translate(100%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
     this.#setCloseCurtainTimer(toBeDirect);
   };
 
@@ -322,9 +312,15 @@ export default class RotaryCover extends BaseCanvas {
 
   #setShowButtonTimer() {
     setTimeout(() => {
-      this.#leftButtons.classList.add('left-button-on');
-      this.#returnBtn.classList.add('right-button-on');
+      this.#leftButtons.style.transform = `translate(${this.#btnVisiblePos.x}%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
+      this.#returnBtn.style.transform = `translate(-${this.#btnVisiblePos.x}%, -${this.#btnVisiblePos.y}%)`; // prettier-ignore
 
+      const rect = this.#returnBtn.getBoundingClientRect();
+      const ratio = 1 + this.#btnVisiblePos.x / 100;
+      this.#progressBar.setPosition(
+        rect.x - rect.width * ratio - RotaryCover.PROGRESS_BAR_PADDING,
+        rect.y - RotaryCover.PROGRESS_BAR_PADDING
+      );
       this.#setProgressTimer();
     }, RotaryCover.BUTTON_APPEAR_DURATION);
   }
