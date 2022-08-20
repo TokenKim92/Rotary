@@ -2,6 +2,8 @@ import PortfolioCover from './src/portfolioCover.js';
 import RotaryCover from './src/rotaryCover.js';
 import './lib/kt-dot.min.js';
 import './lib/duplication.min.js';
+import './lib/sheep.min.js';
+import './lib/dotting.min.js';
 
 window.onload = () => {
   const imageList = [];
@@ -28,7 +30,12 @@ window.onload = () => {
   function createApp() {
     new AppBuilder()
       .addProject(
-        'KT-Dot',
+        'Dotting',
+        { month: 'July', year: '2022' },
+        new Dotting('./imgs/gogh1.jpg')
+      )
+      .addProject(
+        'Type-Dot',
         { month: 'JULY', year: '2022' },
         new kt.Dot('Arial', 'JS')
       )
@@ -37,13 +44,14 @@ window.onload = () => {
         { month: 'JULY', year: '2022' },
         new DuplicateDraw(imageList)
       )
+      .addProject('Sheep', { month: 'August', year: '2022' }, new Sheep())
       .build();
   }
 };
 
 class AppBuilder {
   static BRIGHTNESS_INTERVAL = 10;
-  static BRIGHTNESS_COUNT = 3;
+  static BRIGHTNESS_COUNT = 2;
   static COLOR_LIST = [
     { r: 162, g: 36, b: 30 },
     { r: 53, g: 46, b: 132 },
