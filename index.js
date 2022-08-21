@@ -1,6 +1,6 @@
 import PortfolioCover from './src/portfolioCover.js';
 import RotaryCover from './src/rotaryCover.js';
-import './lib/kt-dot.min.js';
+import './lib/typography-dot.min.js';
 import './lib/duplication.min.js';
 import './lib/sheep.min.js';
 import './lib/dotting.min.js';
@@ -37,7 +37,7 @@ window.onload = () => {
       .addProject(
         'Type-Dot',
         { month: 'JULY', year: '2022' },
-        new kt.Dot('Arial', 'JS')
+        new typography.Dot('Arial', 'JS')
       )
       .addProject(
         'Duplication',
