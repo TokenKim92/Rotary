@@ -60,11 +60,14 @@ class AppBuilder {
     { r: 23, g: 23, b: 23 },
     { r: 165, g: 124, b: 1 },
   ];
+  static FPS = 60;
+  static FPS_TIME = 1000 / AppBuilder.FPS;
 
   #app = null;
   #count = 0;
   #projectCovers = [];
   #instances = [];
+  #prevTime = 0;
 
   addProject(title, date, instance) {
     const colorListCount = AppBuilder.COLOR_LIST.length;
@@ -100,7 +103,12 @@ class AppBuilder {
   }
 
   animate = (curTime) => {
-    this.#app && this.#app.animate(curTime);
+    const isOnFPSTime = AppBuilder.FPS_TIME < curTime - this.#prevTime;
+    if (isOnFPSTime) {
+      this.#app && this.#app.animate(curTime);
+      this.#prevTime = curTime;
+    }
+
     window.requestAnimationFrame(this.animate);
   };
 }

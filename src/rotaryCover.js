@@ -163,7 +163,14 @@ export default class RotaryCover extends BaseCanvas {
   };
 
   #moveToSelectedCover = (clickEvent) => {
-    this.#onMouseInClickField(clickEvent, this.#setTarget);
+    const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
+
+    this.#clickFields.forEach((rect, index) => {
+      if (posInRect(pos, rect)) {
+        this.#setTarget(index);
+        return;
+      }
+    });
   };
 
   #changeCursorShape = (mousemoveEvent) => {
@@ -171,15 +178,11 @@ export default class RotaryCover extends BaseCanvas {
       this.#body.style.cursor = 'default';
     }
 
-    this.#onMouseInClickField(mousemoveEvent, () => (this.#body.style.cursor = 'pointer')); // prettier-ignore
-  };
-
-  #onMouseInClickField = (event, handler) => {
-    const pos = { x: event.clientX, y: event.clientY };
+    const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
 
     this.#clickFields.forEach((rect, index) => {
       if (posInRect(pos, rect)) {
-        handler(index);
+        this.#body.style.cursor = 'pointer';
         return;
       }
     });
