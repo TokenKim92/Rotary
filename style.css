@@ -35,6 +35,11 @@ body {
   position: relative;
 }
 
+a {
+  text-decoration: none;
+  color: var(--color-white);
+}
+
 canvas {
   position: absolute;
 }
@@ -85,7 +90,7 @@ button:hover {
   transform: translate(70%, -50%);
 }
 
-.email,
+.git,
 .instagram,
 .linkedin {
   width: var(--button-size);
@@ -127,7 +132,7 @@ button:hover {
 }
 
 .share,
-.fullscreen {
+.about-me {
   font-family: 'Abril Fatface', cursive;
   font-size: 14px;
   transition: color var(--animation-duration) ease;
@@ -138,4 +143,16 @@ button:hover {
   font-size: 16px;
   color: #6d6d6d;
   margin: 0 3px;
+}
+
+.open-cover {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+
+  font-family: 'Abril Fatface', cursive;
+  font-style: italic;
+  font-size: 16px;
+  transition: color var(--animation-duration) ease;
 }

@@ -32,19 +32,27 @@ window.onload = () => {
       .addProject(
         'Dotting',
         { month: 'July', year: '2022' },
-        new Dotting('./imgs/gogh1.jpg')
+        new Dotting('./imgs/gogh1.jpg'),
+        'https://github.com/TokenKim92/Dotting'
       )
       .addProject(
         'Type-Dot',
         { month: 'JULY', year: '2022' },
-        new typography.Dot('Arial', 'JS')
+        new typography.Dot('Arial', 'JS'),
+        'https://github.com/TokenKim92/TypographyDot'
       )
       .addProject(
         'Duplication',
         { month: 'JULY', year: '2022' },
-        new DuplicateDraw(imageList)
+        new DuplicateDraw(imageList),
+        'https://github.com/TokenKim92/Duplication'
       )
-      .addProject('Sheep', { month: 'August', year: '2022' }, new Sheep())
+      .addProject(
+        'Sheep',
+        { month: 'August', year: '2022' },
+        new Sheep(),
+        'https://github.com/TokenKim92'
+      )
       .build();
   }
 };
@@ -69,7 +77,7 @@ class AppBuilder {
   #instances = [];
   #prevTime = 0;
 
-  addProject(title, date, instance) {
+  addProject(title, date, instance, url) {
     const colorListCount = AppBuilder.COLOR_LIST.length;
     const colorIndex =
       Math.floor(this.#count / AppBuilder.BRIGHTNESS_COUNT) % colorListCount;
@@ -77,8 +85,8 @@ class AppBuilder {
       Math.floor(this.#count % AppBuilder.BRIGHTNESS_COUNT) % colorListCount;
     const color = AppBuilder.COLOR_LIST[colorIndex];
 
-    this.#projectCovers.push(
-      new PortfolioCover(
+    this.#projectCovers.push({
+      cover: new PortfolioCover(
         title,
         `0${this.#count + 1}`,
         date,
@@ -86,8 +94,9 @@ class AppBuilder {
           ${color.r + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex}, 
           ${color.g + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex}, 
           ${color.b + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex})`
-      )
-    ); // prettier-ignore
+      ),
+      url: url,
+    });
 
     this.#count++;
 
