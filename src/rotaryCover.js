@@ -50,6 +50,8 @@ export default class RotaryCover extends BaseCanvas {
 
   #instances = [];
   #gitBtn;
+  #touchedPosX = 0;
+  #isWheelActive = false;
 
   constructor(projectCovers, instances) {
     super(true);
@@ -66,15 +68,32 @@ export default class RotaryCover extends BaseCanvas {
     this.#createProgressBar('rgb(200, 200, 200)', '#6d6d6d', 1);
 
     window.addEventListener('resize', this.resize);
-    window.addEventListener('click', this.#moveToSelectedCover);
-    window.addEventListener('mousemove', this.#changeCursorShape);
     this.#openCoverBtn.addEventListener('click', this.#setFullscreenMode);
     this.#returnBtn.addEventListener('click', this.#setSelectMode);
+    this.#addEvent();
 
     this.#onWebFontLoad(projectCovers);
 
     this.#instances = instances;
     this.#instances.forEach((instance) => instance.removeFromStage());
+  }
+
+  #addEvent() {
+    window.addEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
+    window.addEventListener('touchend', this.#setSelectedIndexOnTouch);
+    window.addEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
+    window.addEventListener('mouseup', this.#setSelectedIndexOnClick);
+    window.addEventListener('mousemove', this.#changeCursorShape);
+    window.addEventListener('wheel', this.#setSelectedIndexOnWheel);
+  }
+
+  #removeEvent() {
+    window.removeEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
+    window.removeEventListener('touchend', this.#setSelectedIndexOnTouch);
+    window.removeEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
+    window.removeEventListener('mouseup', this.#setSelectedIndexOnClick);
+    window.removeEventListener('mousemove', this.#changeCursorShape);
+    window.removeEventListener('wheel', this.#setSelectedIndexOnWheel);
   }
 
   resize = () => {
@@ -115,8 +134,7 @@ export default class RotaryCover extends BaseCanvas {
   }
 
   #setFullscreenMode = () => {
-    window.removeEventListener('click', this.#moveToSelectedCover);
-    window.removeEventListener('mousemove', this.#changeCursorShape);
+    this.#removeEvent();
     this.#bottomButtons.style.display = 'none';
     this.#openCoverBtn.style.display = 'none';
     this.#toBeOpenedCurtain = true;
@@ -170,16 +188,56 @@ export default class RotaryCover extends BaseCanvas {
     this.resize();
   };
 
-  #moveToSelectedCover = (clickEvent) => {
+  #setSelectedIndexOnClick = (clickEvent) => {
     const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
 
-    this.#clickFields.forEach((rect, index) => {
-      if (posInRect(pos, rect)) {
-        this.#setTarget(index);
+    for (let i = 0; i < this.#clickFields.length; i++) {
+      if (posInRect(pos, this.#clickFields[i])) {
+        this.#setTarget(i);
         return;
       }
-    });
+    }
+
+    const deltaX = clickEvent.clientX - this.#touchedPosX;
+    if (!deltaX) {
+      return;
+    }
+
+    const index = this.#calculateSelectedIndex(deltaX > 0); // prettier-ignore
+    this.#setTarget(index);
   };
+
+  #setSelectedIndexOnTouch = (touchEvent) => {
+    const deltaX = touchEvent.changedTouches[0].clientX - this.#touchedPosX;
+    if (!deltaX) {
+      return;
+    }
+
+    const index = this.#calculateSelectedIndex(deltaX > 0); // prettier-ignore
+    this.#setTarget(index);
+  };
+
+  #setSelectedIndexOnWheel = (wheelEvent) => {
+    if (this.#isWheelActive) {
+      return;
+    }
+
+    const index = this.#calculateSelectedIndex(wheelEvent.deltaY > 0);
+    this.#setTarget(index);
+    this.#isWheelActive = true;
+  };
+
+  #calculateSelectedIndex(isRightSwipe) {
+    const wasLastIndex = this.#prevSelectedIndex === this.#projectCovers.length - 1; // prettier-ignore
+    const wasZero = this.#prevSelectedIndex === 0;
+    if (isRightSwipe) {
+      return wasLastIndex
+        ? this.#prevSelectedIndex
+        : this.#prevSelectedIndex + 1;
+    }
+
+    return wasZero ? 0 : this.#prevSelectedIndex - 1;
+  }
 
   #changeCursorShape = (mousemoveEvent) => {
     if (this.#body.style.cursor === 'pointer') {
@@ -316,6 +374,10 @@ export default class RotaryCover extends BaseCanvas {
       this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
       this.#prevRotaryState = false;
     }
+
+    if (this.#isWheelActive) {
+      this.#isWheelActive = false;
+    }
   }
 
   #onOpenCurtain() {
@@ -362,8 +424,7 @@ export default class RotaryCover extends BaseCanvas {
       this.#bottomButtons.style.display = 'flex';
       this.#openCoverBtn.style.display = 'block';
 
-      window.addEventListener('click', this.#moveToSelectedCover);
-      window.addEventListener('mousemove', this.#changeCursorShape);
+      this.#addEvent();
 
       this.#isCoverDisappeared ? this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO)
                                : this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore

@@ -68,7 +68,7 @@ class AppBuilder {
     { r: 23, g: 23, b: 23 },
     { r: 165, g: 124, b: 1 },
   ];
-  static FPS = 60;
+  static FPS = 120;
   static FPS_TIME = 1000 / AppBuilder.FPS;
 
   #app = null;
