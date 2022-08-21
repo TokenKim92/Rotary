@@ -1,5 +1,6 @@
 import PortfolioCover from './src/portfolioCover.js';
 import RotaryCover from './src/rotaryCover.js';
+import Date from './lib/date.js';
 import './lib/typography-dot.min.js';
 import './lib/duplication.min.js';
 import './lib/sheep.min.js';
@@ -31,27 +32,27 @@ window.onload = () => {
     new AppBuilder()
       .addProject(
         'Dotting',
-        { month: 'July', year: '2022' },
+        new Date('10', 'July', '2022'),
         new Dotting('./imgs/gogh1.jpg'),
         'https://github.com/TokenKim92/Dotting'
       )
       .addProject(
         'Type-Dot',
-        { month: 'JULY', year: '2022' },
+        new Date('17', 'July', '2022'),
         new typography.Dot('Arial', 'JS'),
         'https://github.com/TokenKim92/TypographyDot'
       )
       .addProject(
         'Duplication',
-        { month: 'JULY', year: '2022' },
+        new Date('22', 'July', '2022'),
         new DuplicateDraw(imageList),
         'https://github.com/TokenKim92/Duplication'
       )
       .addProject(
         'Sheep',
-        { month: 'August', year: '2022' },
+        new Date('22', 'August', '2022'),
         new Sheep(),
-        'https://github.com/TokenKim92'
+        'https://github.com/TokenKim92/Sheep'
       )
       .build();
   }

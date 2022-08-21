@@ -331,8 +331,11 @@ export default class RotaryCover extends BaseCanvas {
     this.ctx.fillText(cover.title, 200, 0);
 
     this.ctx.fillStyle = '#D0CED0';
-    // TODO:: day should be a variable in the class PortpolioCover
-    this.ctx.fillText(`${cover.createdDate.month}, 11`, 200, 20);
+    this.ctx.fillText(
+      `${cover.createdDate.month}, ${cover.createdDate.day}`,
+      200,
+      30
+    );
 
     this.ctx.restore();
   }
