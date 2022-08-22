@@ -7,24 +7,27 @@ export default class DetailCover extends BaseCanvas {
   static DISAPPEAR_VELOCITY = 1.1;
 
   #cover;
-  #rotationPos = {
-    x: 0,
-    y: 0,
-  };
   #targetRatio;
   #currentRatio = 1;
   #scalingSpeed;
   #targetPosX = 0;
   #disappearSpeed = 1;
+  #pos = {
+    x: 0,
+    y: 0,
+  };
 
   constructor() {
     super(true);
   }
 
-  init(cover, rotationPos) {
+  init(cover) {
     this.#cover = cover;
-    this.#rotationPos = { ...rotationPos };
-    this.#targetPosX = this.#rotationPos.x;
+    this.#targetPosX = this.stageWidth / 2;
+    this.#pos = {
+      x: this.stageWidth / 2,
+      y: this.stageHeight / 2,
+    };
   }
 
   animate() {
@@ -47,32 +50,31 @@ export default class DetailCover extends BaseCanvas {
     this.#drawCover();
 
     this.#disappearSpeed *= DetailCover.DISAPPEAR_VELOCITY;
-    this.#rotationPos.x -= this.#disappearSpeed;
+    this.#pos.x -= this.#disappearSpeed;
   }
 
-  #drawCover(x, y) {
+  #drawCover() {
     this.ctx.save();
 
     this.clearCanvas();
-    this.ctx.translate(this.#rotationPos.x, this.#rotationPos.y);
+    this.ctx.translate(this.#pos.x, this.#pos.y);
     this.isMatchMedia && this.ctx.scale(SMALL_MODE_RATIO, SMALL_MODE_RATIO);
     this.ctx.scale(this.#currentRatio, this.#currentRatio);
-    this.#cover.animate(this.ctx);
+    this.#cover && this.#cover.animate(this.ctx);
 
     this.ctx.restore();
   }
 
   get #scaleStatus() {
-    const status = !(
-      (this.#scalingSpeed >= 0 && this.#currentRatio <= this.#targetRatio) ||
-      (this.#scalingSpeed < 0 && this.#currentRatio > this.#targetRatio)
-    );
+    const status =
+      (this.#scalingSpeed >= 0 && this.#currentRatio >= this.#targetRatio) ||
+      (this.#scalingSpeed < 0 && this.#currentRatio <= this.#targetRatio);
 
     return status ? DONE : !DONE;
   }
 
   get #disappearStatus() {
-    const status = this.#rotationPos.x <= this.#targetPosX;
+    const status = this.#pos.x <= this.#targetPosX;
     return status ? DONE : !DONE;
   }
 
@@ -86,5 +88,10 @@ export default class DetailCover extends BaseCanvas {
   disappearToLeft() {
     this.#targetPosX = PortfolioCover.COVER_RECT.w * this.#targetRatio * -1;
     this.#disappearSpeed = 1;
+  }
+
+  reset() {
+    this.#currentRatio = this.#targetRatio;
+    this.clearCanvas();
   }
 }

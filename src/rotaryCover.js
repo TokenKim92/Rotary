@@ -1,4 +1,7 @@
-import { PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID, SMALL_MODE_RATIO } from './utils.js'; // prettier-ignore
+import { 
+  PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID, 
+  SMALL_MODE_RATIO, LARGE_MODE_RATIO,
+} from './utils.js'; // prettier-ignore
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
@@ -110,7 +113,7 @@ export default class RotaryCover extends BaseCanvas {
     this.#backgroundCurtain.resize();
     this.#detailCover.resize();
     this.#drawCoverItems();
-    this.#setTargetPosAndRatio(
+    this.#setDetailCoverRatio(
       RotaryCover.INIT_RATIO,
       RotaryCover.SELECTED_MODE_RATIO
     );
@@ -209,11 +212,12 @@ export default class RotaryCover extends BaseCanvas {
 
   #setSelectedIndexOnTouch = (touchEvent) => {
     const deltaX = touchEvent.changedTouches[0].clientX - this.#touchedPosX;
-    if (!deltaX) {
+    const tolerant = 5;
+    if (Math.abs(deltaX) < tolerant) {
       return;
     }
 
-    const index = this.#calculateSelectedIndex(deltaX > 0); // prettier-ignore
+    const index = this.#calculateSelectedIndex(deltaX < 0); // prettier-ignore
     this.#setTarget(index);
   };
 
@@ -265,8 +269,8 @@ export default class RotaryCover extends BaseCanvas {
 
   #drawCoverItems() {
     this.#clickFields = [];
-    this.#currentDegree =
-      (this.#currentDegree + this.#rotarySpeed * this.#rotaryDirection) % 361;
+    this.#currentDegree = (this.#currentDegree + this.#rotarySpeed * this.#rotaryDirection) % 361; // prettier-ignore
+    this.#currentDegree = this.#currentDegree < 0 ? 0 : this.#currentDegree;
 
     this.#projectCovers.forEach((projectCover, index) => {
       const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
@@ -300,6 +304,8 @@ export default class RotaryCover extends BaseCanvas {
     switch (this.sizeMode) {
       case BaseCanvas.SMALL_MODE:
         return SMALL_MODE_RATIO;
+      case BaseCanvas.LARGE_MODE:
+        return LARGE_MODE_RATIO;
       default:
         return 1;
     }
@@ -357,8 +363,8 @@ export default class RotaryCover extends BaseCanvas {
 
   #isRotating() {
     return (
-      (this.#rotaryDirection == RotaryCover.TURN_RIGHT && this.#currentDegree <= this.#targetDegree) ||
-      (this.#rotaryDirection == RotaryCover.TURN_LEFT && this.#currentDegree >= this.#targetDegree)
+      (this.#rotaryDirection == RotaryCover.TURN_RIGHT && this.#currentDegree < this.#targetDegree) ||
+      (this.#rotaryDirection == RotaryCover.TURN_LEFT && this.#currentDegree > this.#targetDegree)
     ); // prettier-ignore
   }
 
@@ -367,14 +373,14 @@ export default class RotaryCover extends BaseCanvas {
     this.#drawCoverItems();
 
     if (!this.#prevRotaryState) {
-      this.#detailCover.clearCanvas();
+      this.#detailCover.reset();
       this.#prevRotaryState = true;
     }
   }
 
   #onNotRotation() {
     if (this.#prevRotaryState) {
-      this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
+      this.#setDetailCoverRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
       this.#prevRotaryState = false;
     }
 
@@ -386,7 +392,7 @@ export default class RotaryCover extends BaseCanvas {
   #onOpenCurtain() {
     if (this.#backgroundCurtain.on()) {
       this.#toBeOpenedCurtain = false;
-      this.#setTargetPosAndRatio(RotaryCover.SELECTED_MODE_RATIO, RotaryCover.DETAIL_MODE_RATIO); // prettier-ignore
+      this.#setDetailCoverRatio(RotaryCover.SELECTED_MODE_RATIO, RotaryCover.DETAIL_MODE_RATIO); // prettier-ignore
 
       this.#setShowButtonTimer();
     }
@@ -429,26 +435,14 @@ export default class RotaryCover extends BaseCanvas {
 
       this.#addEvent();
 
-      this.#isCoverDisappeared ? this.#setTargetPosAndRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO)
+      this.#isCoverDisappeared ? this.#setDetailCoverRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO)
                                : this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
     }
   }
 
-  #setTargetPosAndRatio(startRatio, targetRatio) {
-    const degreeInterval = this.isMatchMedia ? RotaryCover.MEDIA_DEGREE_INTERVAL
-                                             : RotaryCover.DEGREE_INTERVAL; // prettier-ignore
-    const degree =
-      degreeInterval * this.#prevSelectedIndex - this.#currentDegree;
-    const radian = (degree * PI) / 180;
-
-    const rotationPos = {
-      x: this.#rotationAxis.x + this.#rotationRadius * Math.sin(radian),
-      y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
-    } // prettier-ignore
-
+  #setDetailCoverRatio(startRatio, targetRatio) {
     const cover = this.#projectCovers[this.#prevSelectedIndex].cover;
-
-    this.#detailCover.init(cover, rotationPos);
+    this.#detailCover.init(cover);
     this.#detailCover.setTargetRatio(startRatio, targetRatio);
   }
 
