@@ -103,7 +103,7 @@ button:hover {
   font-size: var(--button-font-size);
 }
 
-.return {
+.close-cover {
   position: absolute;
   width: var(--button-size);
   height: var(--button-size);
