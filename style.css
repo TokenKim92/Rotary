@@ -1,6 +1,6 @@
 :root {
   /* Size */
-  --title-size: 25px;
+  --title-size: 40px;
   --button-size: 40px;
   --button-font-size: 20px;
   --button-line-height: 30px;
@@ -34,6 +34,15 @@ body {
   height: 100%;
   overflow: hidden;
   position: relative;
+}
+
+canvas {
+  position: absolute;
+}
+
+.canvas-full {
+  width: 100%;
+  height: 100%;
 }
 
 a {
@@ -126,25 +135,13 @@ button:hover {
 .main-git,
 .about-me {
   font-family: 'Abril Fatface', cursive;
-  font-size: 14px;
+  font-size: 18px;
   transition: color var(--animation-duration) ease;
 }
 
 .space {
   font-family: 'Abril Fatface', cursive;
-  font-size: 16px;
+  font-size: 20px;
   color: #6d6d6d;
   margin: 0 3px;
-}
-
-.open-cover {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-
-  font-family: 'Abril Fatface', cursive;
-  font-style: italic;
-  font-size: 16px;
-  transition: color var(--animation-duration) ease;
 }

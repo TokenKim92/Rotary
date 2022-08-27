@@ -38,8 +38,9 @@ export default class RotaryCover extends BaseCanvas {
 
   #leftButtons;
   #bottomButtons;
-  #closeCoverBtn;
-  #openCoverBtn;
+  #closeCoverButton;
+  #gitButton;
+  #aboutMeButton;
   #toBeOpenedCurtain = false;
   #toBeClosedCurtain = false;
 
@@ -53,12 +54,9 @@ export default class RotaryCover extends BaseCanvas {
   #loadProjectTimerID = INVALID_ID;
 
   #projects = [];
-  #gitBtn;
   #touchedPosX = 0;
   #isWheelActive = false;
   #introductionBanner;
-
-  #isAddedAlreadyEvent = false; // TODO:: find better way
 
   constructor(projectCovers, projects) {
     super(true);
@@ -72,22 +70,22 @@ export default class RotaryCover extends BaseCanvas {
 
     this.#leftButtons = document.querySelector('.left-buttons');
     this.#bottomButtons = document.querySelector('.bottom-buttons');
-    this.#closeCoverBtn = document.querySelector('.close-cover');
-    this.#openCoverBtn = document.querySelector('.open-cover');
-    this.#gitBtn = document.querySelector('.git');
+    this.#closeCoverButton = document.querySelector('.close-cover');
+    this.#gitButton = document.querySelector('.git');
+    this.#aboutMeButton = document.querySelector('.about-me');
     this.#body = document.querySelector('body');
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
     this.#progressBar = new CircleProgressBar(
-      this.#closeCoverBtn.getBoundingClientRect().width + RotaryCover.PROGRESS_BAR_PADDING * 2,
+      this.#closeCoverButton.getBoundingClientRect().width + RotaryCover.PROGRESS_BAR_PADDING * 2,
       { background: 'rgb(200, 200, 200)', progressBar: '#6d6d6d' },
       1); // prettier-ignore
     this.#introductionBanner = new TypingBanner('Fjalla One');
 
     window.addEventListener('resize', this.resize);
-    this.#openCoverBtn.addEventListener('click', this.#openCover);
-    this.#closeCoverBtn.addEventListener('click', this.#closeCover);
+    this.#closeCoverButton.addEventListener('click', this.#closeCover);
+    this.#aboutMeButton.addEventListener('click', this.#onClickAboutMe);
     this.#addEventToSelectCover();
 
     WebFont.load({
@@ -96,27 +94,38 @@ export default class RotaryCover extends BaseCanvas {
         this.resize();
       },
     });
-    this.#introductionBanner.show(1000);
+    this.#onClickAboutMe();
   }
 
+  #onClickAboutMe = () => {
+    this.#introductionBanner.show(300);
+    this.#removeEventFromSelectCover();
+  };
+
   #addEventToSelectCover() {
-    if (this.#isAddedAlreadyEvent) {
-      return;
-    }
-
-    this.#isAddedAlreadyEvent = true;
-
     window.addEventListener('touchstart', (e) => {
       this.#touchedPosX = e.touches[0].clientX;
     });
     window.addEventListener('touchend', this.#setSelectedIndexOnTouch);
     window.addEventListener('mousedown', (e) => {
       this.#touchedPosX = e.clientX;
-      this.#introductionBanner.isTyping && this.#introductionBanner.hide(300);
+      if (this.#introductionBanner.isTyping) {
+        this.#introductionBanner.hide(300);
+        setTimeout(() => this.#addEventToSelectCover(), 300);
+      }
     });
     window.addEventListener('mouseup', this.#setSelectedIndexOnClick);
     window.addEventListener('mousemove', this.#changeCursorShape);
     window.addEventListener('wheel', this.#setSelectedIndexOnWheel);
+  }
+
+  #removeEventFromSelectCover() {
+    window.removeEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
+    window.removeEventListener('touchend', this.#setSelectedIndexOnTouch);
+    window.removeEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
+    window.removeEventListener('mouseup', this.#setSelectedIndexOnClick);
+    window.removeEventListener('mousemove', this.#changeCursorShape);
+    window.removeEventListener('wheel', this.#setSelectedIndexOnWheel);
   }
 
   resize = () => {
@@ -132,7 +141,7 @@ export default class RotaryCover extends BaseCanvas {
       y: (this.stageHeight / 2) * 3,
     };
     this.#currentDegree = this.#prevSelectedIndex * this.#degreeInterval;
-    this.#closeCover(true);
+    //this.#closeCover(true); //TODO:: It is important, but because of this events are added double.
     this.#drawCovers();
     this.#setDetailCoverRatio(
       RotaryCover.INIT_RATIO,
@@ -140,31 +149,13 @@ export default class RotaryCover extends BaseCanvas {
     );
 
     this.#projects.forEach((project) => project.resize());
-    const coverHalfHeight = this.isMatchMedia
-      ? (PortfolioCover.COVER_RECT.h / 2) * SMALL_MODE_RATIO + 15
-      : PortfolioCover.COVER_RECT.h / 2 + 30;
-    this.#openCoverBtn.style.top = 
-      `${this.#rotationAxis.y - this.#rotationRadius +  coverHalfHeight}px`; //prettier-ignore
   };
 
-  #openCover = () => {
-    if (!this.#isAddedAlreadyEvent) {
-      return;
-    }
-
-    this.#isAddedAlreadyEvent = false;
-
-    window.removeEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
-    window.removeEventListener('touchend', this.#setSelectedIndexOnTouch);
-    window.removeEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
-    window.removeEventListener('mouseup', this.#setSelectedIndexOnClick);
-    window.removeEventListener('mousemove', this.#changeCursorShape);
-    window.removeEventListener('wheel', this.#setSelectedIndexOnWheel);
-
+  #openCover() {
+    this.#removeEventFromSelectCover();
     this.#bottomButtons.style.display = 'none';
-    this.#openCoverBtn.style.display = 'none';
     this.#toBeOpenedCurtain = true;
-  };
+  }
 
   #closeCover = (toBeDirect = false) => {
     isInvalidID(this.#loadProjectTimerID) || this.#killLoadProjectTimer();
@@ -181,7 +172,7 @@ export default class RotaryCover extends BaseCanvas {
     this.#progressCanceled = true;
 
     this.#leftButtons.style.transform = `translate(-100%, -50%)`;
-    this.#closeCoverBtn.style.transform = `translate(100%, -50%)`;
+    this.#closeCoverButton.style.transform = `translate(100%, -50%)`;
     toBeDirect
       ? (this.#toBeClosedCurtain = true)
       : this.#setCloseCurtainTimer();
@@ -199,6 +190,12 @@ export default class RotaryCover extends BaseCanvas {
 
     for (let i = 0; i < this.#clickFields.length; i++) {
       if (posInRect(pos, this.#clickFields[i])) {
+        if (i === this.#prevSelectedIndex) {
+          this.#openCover();
+          this.#body.style.cursor = 'default';
+          return;
+        }
+
         this.#setTargetCover(i);
         return;
       }
@@ -207,7 +204,7 @@ export default class RotaryCover extends BaseCanvas {
     const deltaX = clickEvent.clientX - this.#touchedPosX;
     if (deltaX) {
       const index = this.#calculateSelectedIndex(deltaX > 0); // prettier-ignore
-      this.#setTargetCover(index);
+      index === this.#prevSelectedIndex || this.#setTargetCover(index);
     }
   };
 
@@ -216,14 +213,14 @@ export default class RotaryCover extends BaseCanvas {
     const tolerant = 5;
     if (Math.abs(deltaX) > tolerant) {
       const index = this.#calculateSelectedIndex(deltaX < 0); // prettier-ignore
-      this.#setTargetCover(index);
+      index === this.#prevSelectedIndex || this.#setTargetCover(index);
     }
   };
 
   #setSelectedIndexOnWheel = (wheelEvent) => {
     if (!this.#isWheelActive) {
       const index = this.#calculateSelectedIndex(wheelEvent.deltaY > 0);
-      this.#setTargetCover(index);
+      index === this.#prevSelectedIndex || this.#setTargetCover(index);
       this.#isWheelActive = true;
     }
   };
@@ -384,9 +381,9 @@ export default class RotaryCover extends BaseCanvas {
     setTimeout(() => {
       const btnVisiblePosX = this.isMatchMedia ? 20 : 100;
       this.#leftButtons.style.transform = `translate(${btnVisiblePosX}%, -50%)`;
-      this.#closeCoverBtn.style.transform = `translate(-${btnVisiblePosX}%, -50%)`;
+      this.#closeCoverButton.style.transform = `translate(-${btnVisiblePosX}%, -50%)`;
 
-      const rect = this.#closeCoverBtn.getBoundingClientRect();
+      const rect = this.#closeCoverButton.getBoundingClientRect();
       const ratio = 1 + btnVisiblePosX / 100;
       this.#progressBar.setPosition(
         rect.x - rect.width * ratio - RotaryCover.PROGRESS_BAR_PADDING,
@@ -413,7 +410,6 @@ export default class RotaryCover extends BaseCanvas {
       this.#progressCanceled = false;
       this.#toBeClosedCurtain = false;
       this.#bottomButtons.style.display = 'flex';
-      this.#openCoverBtn.style.display = 'block';
 
       this.#addEventToSelectCover();
 
@@ -461,7 +457,7 @@ export default class RotaryCover extends BaseCanvas {
     this.#loadedProject.bringToStage();
     this.#loadedProject.resize();
 
-    this.#gitBtn.innerHTML = `
+    this.#gitButton.innerHTML = `
     <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
       <i class="fa-brands fa-github"></i>
     </a>`; //prettier-ignore

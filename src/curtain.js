@@ -25,7 +25,7 @@ export default class Curtain extends BaseCanvas {
     this.ctx.fillRect(0, 0, this.#filledWidth, this.stageHeight);
     this.ctx.restore();
 
-    return this.#filledWidth >= this.stageWidth ? true : false;
+    return this.#filledWidth >= this.stageWidth;
   }
 
   off() {
@@ -33,6 +33,6 @@ export default class Curtain extends BaseCanvas {
     this.clearCanvas();
     this.ctx.fillRect(0, 0, this.#filledWidth, this.stageHeight);
 
-    return this.#filledWidth <= 0 ? true : false;
+    return this.#filledWidth <= 0;
   }
 }
