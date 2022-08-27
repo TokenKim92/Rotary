@@ -7,6 +7,7 @@ import Curtain from './curtain.js';
 import CircleProgressBar from './circleProgressBar.js';
 import BaseCanvas from '../lib/baseCanvas.js';
 import PortfolioCover from './portfolioCover.js';
+import TypingBanner from './typingBanner.js';
 
 export default class RotaryCover extends BaseCanvas {
   static INIT_RATIO = 1;
@@ -55,6 +56,9 @@ export default class RotaryCover extends BaseCanvas {
   #gitBtn;
   #touchedPosX = 0;
   #isWheelActive = false;
+  #introductionBanner;
+
+  #isAddedAlreadyEvent = false; // TODO:: find better way
 
   constructor(projectCovers, projects) {
     super(true);
@@ -79,6 +83,7 @@ export default class RotaryCover extends BaseCanvas {
       this.#closeCoverBtn.getBoundingClientRect().width + RotaryCover.PROGRESS_BAR_PADDING * 2,
       { background: 'rgb(200, 200, 200)', progressBar: '#6d6d6d' },
       1); // prettier-ignore
+    this.#introductionBanner = new TypingBanner('Fjalla One');
 
     window.addEventListener('resize', this.resize);
     this.#openCoverBtn.addEventListener('click', this.#openCover);
@@ -86,15 +91,29 @@ export default class RotaryCover extends BaseCanvas {
     this.#addEventToSelectCover();
 
     WebFont.load({
-      google: { families: ['Abril Fatface'] },
-      fontactive: () => this.resize(),
+      google: { families: ['Abril Fatface', 'Fjalla One'] },
+      fontactive: () => {
+        this.resize();
+      },
     });
+    this.#introductionBanner.show(1000);
   }
 
   #addEventToSelectCover() {
-    window.addEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
+    if (this.#isAddedAlreadyEvent) {
+      return;
+    }
+
+    this.#isAddedAlreadyEvent = true;
+
+    window.addEventListener('touchstart', (e) => {
+      this.#touchedPosX = e.touches[0].clientX;
+    });
     window.addEventListener('touchend', this.#setSelectedIndexOnTouch);
-    window.addEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
+    window.addEventListener('mousedown', (e) => {
+      this.#touchedPosX = e.clientX;
+      this.#introductionBanner.isTyping && this.#introductionBanner.hide(300);
+    });
     window.addEventListener('mouseup', this.#setSelectedIndexOnClick);
     window.addEventListener('mousemove', this.#changeCursorShape);
     window.addEventListener('wheel', this.#setSelectedIndexOnWheel);
@@ -104,6 +123,7 @@ export default class RotaryCover extends BaseCanvas {
     super.resize();
     this.#backgroundCurtain.resize();
     this.#detailCover.resize();
+    this.#introductionBanner.resize();
 
     this.#rotarySpeed = RotaryCover.INIT_ROTARY_SPEED * this.#ratioPerWidth;
     this.#rotationRadius = this.stageHeight;
@@ -128,6 +148,12 @@ export default class RotaryCover extends BaseCanvas {
   };
 
   #openCover = () => {
+    if (!this.#isAddedAlreadyEvent) {
+      return;
+    }
+
+    this.#isAddedAlreadyEvent = false;
+
     window.removeEventListener('touchstart', (e) => (this.#touchedPosX = e.touches[0].clientX)); // prettier-ignore
     window.removeEventListener('touchend', this.#setSelectedIndexOnTouch);
     window.removeEventListener('mousedown', (e) => (this.#touchedPosX = e.clientX)); // prettier-ignore
@@ -311,6 +337,7 @@ export default class RotaryCover extends BaseCanvas {
     this.#onProgressFinished(progressStatus);
 
     this.#loadedProject && this.#loadedProject.animate(curTime);
+    this.#introductionBanner.animate(curTime);
   }
 
   #isRotating() {
