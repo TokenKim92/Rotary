@@ -41,15 +41,6 @@ a {
   color: var(--color-white);
 }
 
-canvas {
-  position: absolute;
-}
-
-.canvas-full {
-  width: 100%;
-  height: 100%;
-}
-
 h1 {
   font-family: 'Abril Fatface', cursive;
 }
