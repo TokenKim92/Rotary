@@ -1,9 +1,13 @@
 :root {
   /* Size */
   --title-size: 40px;
-  --button-size: 40px;
-  --button-font-size: 20px;
-  --button-line-height: 30px;
+  --button-size: 50px;
+  --button-font-size: 25px;
+  --button-line-height: 25px;
+
+  /*Color*/
+  --button-color: #cccccc;
+  --button-hover-color: #8794a1;
 
   /* Animation */
   --animation-duration: 300ms;
@@ -59,14 +63,10 @@ button {
   outline: none;
   background-color: transparent;
   cursor: pointer;
-  color: #6d6d6d;
+
   z-index: 1;
 
   transition: all var(--animation-duration) ease;
-}
-
-button:hover {
-  color: #c0c0c0;
 }
 
 .title {
@@ -97,10 +97,18 @@ button:hover {
   width: var(--button-size);
   height: var(--button-size);
   margin: 5px 0;
-  border: 2px solid #6d6d6d;
+  border: 2px solid var(--button-color);
   border-radius: 50%;
   line-height: var(--button-line-height);
   font-size: var(--button-font-size);
+  color: var(--button-color);
+}
+
+.git:hover,
+.instagram:hover,
+.linkedin:hover {
+  border: 2px solid var(--button-hover-color);
+  color: var(--button-hover-color);
 }
 
 .close-cover {
@@ -110,13 +118,19 @@ button:hover {
   right: 0px;
   top: 50%;
   margin: 5px 0;
-  border: 2px solid #6d6d6d;
+  border: 2px solid var(--button-color);
   border-radius: 50%;
   line-height: var(--button-line-height);
   font-size: var(--button-font-size);
+  color: var(--button-color);
   transform: translate(100%, -50%);
   transition: all var(--animation-duration) ease;
   z-index: 1;
+}
+
+.close-cover:hover {
+  border: 2px solid var(--button-hover-color);
+  color: var(--button-hover-color);
 }
 
 .right-button-on {
@@ -128,6 +142,7 @@ button:hover {
   display: flex;
   left: 50%;
   bottom: 10px;
+  color: #6d6d6d;
   transform: translateX(-50%);
   z-index: 1;
 }
@@ -136,7 +151,13 @@ button:hover {
 .about-me {
   font-family: 'Abril Fatface', cursive;
   font-size: 18px;
+  color: #6d6d6d;
   transition: color var(--animation-duration) ease;
+}
+
+.main-git:hover,
+.about-me:hover {
+  color: var(--button-hover-color);
 }
 
 .space {
@@ -144,4 +165,14 @@ button:hover {
   font-size: 20px;
   color: #6d6d6d;
   margin: 0 3px;
+}
+
+/* For below 768px screen width */
+@media screen and (max-width: 768px) {
+  :root {
+    /* Size */
+    --button-size: 40px;
+    --button-font-size: 20px;
+    --button-line-height: 20px;
+  }
 }
