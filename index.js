@@ -22,7 +22,7 @@ window.onload = () => {
       .addProject(
         'Dotting',
         new Date('10', 'July', '2022'),
-        new Dotting('./imgs/gogh1.jpg'),
+        new Dotting('./imgs/yeji.png'),
         'https://github.com/TokenKim92/Dotting'
       )
       .addProject(
