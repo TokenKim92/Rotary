@@ -7,28 +7,36 @@ import './lib/sheep.min.js';
 import './lib/dotting.min.js';
 
 window.onload = () => {
-  const imageList = [];
-  let imageCount = 0;
+  const fontList = ['Abril Fatface', 'Fjalla One'];
+  const fontCount = fontList.length;
+  let currentLoadedFontCount = 0;
   const imageUrls = [
     './imgs/gogh1.jpg',
     './imgs/gogh2.jpg',
     './imgs/gogh3.jpg',
   ];
 
-  createApp();
+  WebFont.load({
+    google: { families: fontList },
+    fontactive: () => {
+      currentLoadedFontCount++;
+
+      fontCount === currentLoadedFontCount && createApp();
+    },
+  });
 
   function createApp() {
     new AppBuilder()
       .addProject(
         'Dotting',
         new Date('10', 'July', '2022'),
-        new Dotting('./imgs/yeji.png'),
+        new Dotting('./imgs/yeji.png', 'Fjalla One'),
         'https://github.com/TokenKim92/Dotting'
       )
       .addProject(
         'Type-Dot',
         new Date('17', 'July', '2022'),
-        new typography.Dot('Arial', 'JS'),
+        new typography.Dot('Fjalla One', 'JS'),
         'https://github.com/TokenKim92/TypographyDot'
       )
       .addProject(

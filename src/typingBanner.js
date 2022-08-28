@@ -8,17 +8,20 @@ export default class TypingBanner {
   #fontName;
   #fontColor;
   #backgroundColor;
-  #isTyping = false;
+  #isCalledWaitingHandler = false;
 
-  constructor(fontName, fontColor = '#ffffff', backgroundColor = '#000000cc') {
+  constructor(fontName, speed = 50, fontColor = '#ffffff', backgroundColor = '#000000cc') {
     this.#fontName = fontName;
     this.#fontColor = fontColor;
     this.#backgroundColor = backgroundColor;
 
     this.#typing = new Typing(
-      new FontFormat(400, 50, this.#fontName, this.#fontColor)
+      new FontFormat(400, 50, this.#fontName, this.#fontColor),
+      speed
     );
-  }
+    this.#typing.setWaitingHandler(this.hide, 300);
+    this.#typing.hide();
+  } // prettier-ignore
 
   resize() {
     let borderRadius = 15;
@@ -53,80 +56,73 @@ export default class TypingBanner {
     );
     this.#typing.borderRadius = borderRadius;
     this.#typing.backgroundColor = this.#backgroundColor;
+    this.setMessage();
   }
 
   animate(curTime) {
     this.#typing.animate(curTime);
   }
 
-  show(millisecond = 0, mode = 'ease') {
-    this.#isTyping = true;
-    this.#typing.hide();
-    this.#typing.show(millisecond, mode);
-
+  setMessage() {
     if (!this.#typing.isMatchMedia) {
       this.#typing
-        .delay(1500)
-        .type('Hi', 150)
-        .move(-1, 25)
-        .delete(1, 25)
-        .type('ello,', 150)
-        .type(' I am Token Kim.', 150)
-        .move(-10, 50)
-        .delete(5, 50)
-        .type('Deokgeun', 50)
-        .moveEnd(150)
-        .type(['', 'A Software Engineer of C/C++'], 150)
+        .delay(1000)
+        .type('Hello,', 100)
+        .type(' I am Deokgeun Kim.', 100)
+        .type(['', 'A Software Engineer of C/C++'], 100)
         .move(-8, 50)
         .delete(8, 50)
-        .type('currently residing in Germany.', 150)
-        .move(-8, 150)
-        .type('Dresden, ', 150)
-        .moveEnd(150)
-        .type(['', "It's my portfolio of HTML5"], 150)
+        .type('currently residing Dresden, in Germany.', 100)
+        .type(['', "It's my portfolio of HTML5"], 100)
         .move(-5, 50)
-        .type('interactive ', 150)
-        .moveEnd(1500)
-        .type(' without library.', 200)
+        .type('interactive ', 100)
+        .moveEnd(1000)
+        .type(' without library.', 100)
         .type(['', 'Please enjoy this. '], 50)
         .start();
     } else {
       this.#typing
-        .delay(1500)
-        .type('Hi', 150)
-        .move(-1, 25)
-        .delete(1, 25)
-        .type('ello,', 150)
-        .type(' I am Token Kim.', 150)
-        .move(-10, 50)
-        .delete(5, 50)
-        .type('Deokgeun', 50)
-        .moveEnd(150)
-        .type(['', '', 'A Software Engineer of C/C++'], 150)
+        .delay(1000)
+        .type('Hello,', 100)
+        .type(' I am Deokgeun Kim.', 100)
+        .type(['', '', 'A Software Engineer of C/C++'], 100)
         .move(-8, 50)
         .delete(8, 50)
-        .type(['', 'currently residing in', 'Germany.'], 150)
-        .move(-8, 50)
-        .type('Dresden, ', 150)
-        .moveEnd(150)
-        .type(['', '', "It's my portfolio of HTML5"], 150)
+        .type(['currently', 'residing Dresden, in Germany.'], 100)
+        .type(['', '', "It's my portfolio of HTML5"], 100)
         .move(-5, 50)
         .delete(5)
         .type('interactive')
         .moveEnd()
-        .type(['', 'HTML5'], 1500)
-        .type(' without library.', 200)
+        .type(['', 'HTML5'], 1000)
+        .type(' without library.', 100)
         .type(['', '', 'Please enjoy this. '], 50)
         .start();
     }
   }
 
-  hide(millisecond = 0, mode = 'ease') {
-    this.#typing.stop();
-    this.#typing.hide(millisecond, mode);
+  show(millisecond = 0, mode = 'ease') {
+    this.#isCalledWaitingHandler = false;
+    this.#typing.isOnStage || this.#typing.bringToStage();
+
+    this.#typing.show(millisecond, mode);
   }
 
-  get isTyping() {
-    return this.#isTyping;
+  hide = (millisecond = 0, mode = 'ease') => {
+    if (this.#isCalledWaitingHandler) {
+      return;
+    }
+    this.#isCalledWaitingHandler = true;
+
+    this.#typing.hide(millisecond, mode);
+    setTimeout(
+      () => this.#typing.isOnStage && this.#typing.removeFromStage(),
+      millisecond * 2
+    );
+  };
+
+  initTyping() {
+    this.#typing.clearCanvas();
+    this.#typing.init();
   }
 }

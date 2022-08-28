@@ -81,26 +81,21 @@ export default class RotaryCover extends BaseCanvas {
       this.#closeCoverButton.getBoundingClientRect().width + RotaryCover.PROGRESS_BAR_PADDING * 2,
       { background: 'rgb(200, 200, 200)', progressBar: '#6d6d6d' },
       1); // prettier-ignore
-    this.#introductionBanner = new TypingBanner('Fjalla One');
+    this.#introductionBanner = new TypingBanner('Fjalla One', 30);
 
     window.addEventListener('resize', this.resize);
     this.#closeCoverButton.addEventListener('click', this.#closeCover);
-    this.#aboutMeButton.addEventListener('click', this.#onClickAboutMe);
+    this.#aboutMeButton.addEventListener('click', () =>{
+      
+      this.#introductionBanner.initTyping();
+      this.#introductionBanner.setMessage();
+      this.#introductionBanner.show(300)
+    }); //prettier-ignore
     this.#addEventToSelectCover();
 
-    WebFont.load({
-      google: { families: ['Abril Fatface', 'Fjalla One'] },
-      fontactive: () => {
-        this.resize();
-      },
-    });
-    this.#onClickAboutMe();
-  }
-
-  #onClickAboutMe = () => {
+    this.resize();
     this.#introductionBanner.show(300);
-    this.#removeEventFromSelectCover();
-  };
+  }
 
   #addEventToSelectCover() {
     window.addEventListener('touchstart', (e) => {
@@ -109,10 +104,7 @@ export default class RotaryCover extends BaseCanvas {
     window.addEventListener('touchend', this.#setSelectedIndexOnTouch);
     window.addEventListener('mousedown', (e) => {
       this.#touchedPosX = e.clientX;
-      if (this.#introductionBanner.isTyping) {
-        this.#introductionBanner.hide(300);
-        setTimeout(() => this.#addEventToSelectCover(), 300);
-      }
+      this.#introductionBanner.hide();
     });
     window.addEventListener('mouseup', this.#setSelectedIndexOnClick);
     window.addEventListener('mousemove', this.#changeCursorShape);
@@ -149,6 +141,8 @@ export default class RotaryCover extends BaseCanvas {
     );
 
     this.#projects.forEach((project) => project.resize());
+    this.#introductionBanner.resize();
+    this.#introductionBanner.show(300);
   };
 
   #openCover() {
