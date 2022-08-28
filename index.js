@@ -56,7 +56,7 @@ window.onload = () => {
 };
 
 class AppBuilder {
-  static BRIGHTNESS_INTERVAL = 10;
+  static BRIGHTNESS_INTERVAL = 15;
   static BRIGHTNESS_COUNT = 2;
   static COLOR_LIST = [
     { r: 162, g: 36, b: 30 },

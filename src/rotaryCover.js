@@ -187,6 +187,10 @@ export default class RotaryCover extends BaseCanvas {
         if (i === this.#prevSelectedIndex) {
           this.#openCover();
           this.#body.style.cursor = 'default';
+          this.#gitButton.innerHTML = `
+            <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
+              <i class="fa-brands fa-github"></i>
+            </a>`; //prettier-ignore
           return;
         }
 
@@ -450,11 +454,6 @@ export default class RotaryCover extends BaseCanvas {
     this.#loadedProject = this.#projects[this.#prevSelectedIndex];
     this.#loadedProject.bringToStage();
     this.#loadedProject.resize();
-
-    this.#gitButton.innerHTML = `
-    <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
-      <i class="fa-brands fa-github"></i>
-    </a>`; //prettier-ignore
   }
 
   #removeLoadedProject() {
