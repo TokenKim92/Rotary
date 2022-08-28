@@ -15,18 +15,7 @@ window.onload = () => {
     './imgs/gogh3.jpg',
   ];
 
-  imageUrls.forEach((imageUrl) => {
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      imageList.push(img);
-      imageCount++;
-
-      if (imageCount === imageUrls.length) {
-        createApp();
-      }
-    };
-  });
+  createApp();
 
   function createApp() {
     new AppBuilder()
@@ -45,7 +34,7 @@ window.onload = () => {
       .addProject(
         'Duplication',
         new Date('22', 'July', '2022'),
-        new DuplicateDraw(imageList),
+        new DuplicateDraw(imageUrls),
         'https://github.com/TokenKim92/Duplication'
       )
       .addProject(
