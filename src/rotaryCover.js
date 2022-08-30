@@ -150,7 +150,20 @@ export default class RotaryCover extends BaseCanvas {
     this.#removeEventFromSelectCover();
     this.#bottomButtons.style.display = 'none';
     this.#toBeOpenedCurtain = true;
+
+    setTimeout(() => {
+      window.addEventListener('click', this.#loadDirectlyProject);
+    }, RotaryCover.BUTTON_APPEAR_DURATION);
   }
+
+  #loadDirectlyProject = () => {
+    if (isDone(this.#progressBar.status)) {
+      return;
+    }
+
+    this.#progressBar.stop();
+    this.disappearDetailCover();
+  };
 
   #closeCover = (toBeDirect = false) => {
     this.#isDetailMode = false;
@@ -408,6 +421,7 @@ export default class RotaryCover extends BaseCanvas {
       this.#bottomButtons.style.display = 'flex';
 
       this.#addEventToSelectCover();
+      window.removeEventListener('click', this.#loadDirectlyProject);
 
       this.#isDetailMode || this.#flagToSetRatio
         ? this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO)

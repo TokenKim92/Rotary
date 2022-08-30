@@ -130,4 +130,8 @@ export default class CircleProgressBar extends BaseCanvas {
     this.#alpha = 1;
     this.#progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
   }
+
+  get status() {
+    return this.#status;
+  }
 }
