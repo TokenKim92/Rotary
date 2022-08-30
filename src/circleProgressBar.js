@@ -1,4 +1,4 @@
-import { PI, PI2, DONE, colorToRGB } from './utils.js';
+import { PI, PI2, DONE, isDone, colorToRGB } from './utils.js';
 import BaseCanvas from '../lib/baseCanvas.js';
 
 export default class CircleProgressBar extends BaseCanvas {
@@ -18,10 +18,12 @@ export default class CircleProgressBar extends BaseCanvas {
   #colorProgressBar;
   #progressSpeed;
   #progress = CircleProgressBar.TOTAL_PROGRESS_LENGTH + 1;
-  #prevTime;
-  #progressStatus = DONE;
+  #prevTime = 0;
+  #status = DONE;
   #isPreparing = false;
   #alpha = 0;
+  #prevStatus = DONE;
+  #onDoneHandler;
 
   constructor(length, color, targetSecond) {
     super();
@@ -42,24 +44,25 @@ export default class CircleProgressBar extends BaseCanvas {
 
   animate(curTime) {
     this.#isPreparing && this.#onPrepare();
-
-    if (!this.#prevTime) {
-      this.#prevTime = curTime;
-      return this.#progressStatus;
-    }
-
     const isOnFPSTime = CircleProgressBar.FPS_TIME < curTime - this.#prevTime;
     if (isOnFPSTime) {
       this.#drawProgress();
+
+      if (isDone(this.#status) && !isDone(this.#prevStatus)) {
+        this.clearCanvas();
+        this.#onDoneHandler && this.#onDoneHandler();
+      }
+
       this.#prevTime = curTime;
+      this.#prevStatus = this.#status;
     }
 
-    return this.#progressStatus;
+    return this.#status;
   }
 
   #drawProgress() {
     if (this.#progress > CircleProgressBar.TOTAL_PROGRESS_LENGTH) {
-      this.#progressStatus || (this.#progressStatus = DONE);
+      this.#status || (this.#status = DONE);
       return;
     }
 
@@ -67,7 +70,7 @@ export default class CircleProgressBar extends BaseCanvas {
     this.#drawBackground();
     this.#drawProgressBar();
 
-    this.#progressStatus && (this.#progressStatus = !DONE);
+    this.#status && (this.#status = !DONE);
   }
 
   #onPrepare() {
@@ -109,6 +112,10 @@ export default class CircleProgressBar extends BaseCanvas {
     this.ctx.stroke();
 
     this.ctx.restore();
+  }
+
+  set onDoneHandler(handler) {
+    this.#onDoneHandler = handler;
   }
 
   start() {

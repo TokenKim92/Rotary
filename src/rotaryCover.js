@@ -34,7 +34,7 @@ export default class RotaryCover extends BaseCanvas {
   #prevSelectedIndex;
   #clickFields = [];
   #prevRotaryState = false;
-  #body;
+  #htmlBody;
 
   #leftButtons;
   #bottomButtons;
@@ -44,19 +44,17 @@ export default class RotaryCover extends BaseCanvas {
   #toBeOpenedCurtain = false;
   #toBeClosedCurtain = false;
 
-  #prevProgressStatus = DONE;
-  #progressTimerID = INVALID_ID;
-  #progressCanceled = false;
-  #isCoverDisappeared = false;
-
   #loadedProject = null;
-  #prevDisappearStatus = DONE;
   #loadProjectTimerID = INVALID_ID;
+  #progressTimerID = INVALID_ID;
 
   #projects = [];
   #touchedPosX = 0;
   #isWheelActive = false;
   #introductionBanner;
+
+  #flagToSetRatio = false;
+  #isDetailMode = false;
 
   constructor(projectCovers, projects) {
     super(true);
@@ -73,14 +71,16 @@ export default class RotaryCover extends BaseCanvas {
     this.#closeCoverButton = document.querySelector('.close-cover');
     this.#gitButton = document.querySelector('.git');
     this.#aboutMeButton = document.querySelector('.about-me');
-    this.#body = document.querySelector('body');
+    this.#htmlBody = document.querySelector('body');
 
     this.#backgroundCurtain = new Curtain();
     this.#detailCover = new DetailCover();
+    this.#detailCover.onDisappearedHandler = this.setLoadProjectTimer;
     this.#progressBar = new CircleProgressBar(
       this.#closeCoverButton.getBoundingClientRect().width + RotaryCover.PROGRESS_BAR_PADDING * 2,
       { background: 'rgb(200, 200, 200)', progressBar: '#6d6d6d' },
       1); // prettier-ignore
+    this.#progressBar.onDoneHandler = this.disappearDetailCover;
     this.#introductionBanner = new TypingBanner('Fjalla One', 30);
 
     window.addEventListener('resize', this.resize);
@@ -133,7 +133,7 @@ export default class RotaryCover extends BaseCanvas {
       y: (this.stageHeight / 2) * 3,
     };
     this.#currentDegree = this.#prevSelectedIndex * this.#degreeInterval;
-    //this.#closeCover(true); //TODO:: It is important, but because of this events are added double.
+    this.#closeCover(true);
     this.#drawCovers();
     this.#setDetailCoverRatio(
       RotaryCover.INIT_RATIO,
@@ -146,30 +146,27 @@ export default class RotaryCover extends BaseCanvas {
   };
 
   #openCover() {
+    this.#isDetailMode = true;
     this.#removeEventFromSelectCover();
     this.#bottomButtons.style.display = 'none';
     this.#toBeOpenedCurtain = true;
   }
 
   #closeCover = (toBeDirect = false) => {
+    this.#isDetailMode = false;
+
+    !isInvalidID(this.#progressTimerID) || this.#killProgressTimer();
     isInvalidID(this.#loadProjectTimerID) || this.#killLoadProjectTimer();
     this.#loadedProject && this.#removeLoadedProject();
 
-    this.#isCoverDisappeared = isDone(this.#prevProgressStatus);
-    if (!isInvalidID(this.#progressTimerID)) {
-      this.#killProgressTimer();
-      this.#isCoverDisappeared = false;
-    }
-
     this.#progressBar.stop();
     this.#progressBar.clearCanvas();
-    this.#progressCanceled = true;
 
     this.#leftButtons.style.transform = `translate(-100%, -50%)`;
     this.#closeCoverButton.style.transform = `translate(100%, -50%)`;
-    toBeDirect
-      ? (this.#toBeClosedCurtain = true)
-      : this.#setCloseCurtainTimer();
+
+    toBeDirect ? (this.#toBeClosedCurtain = true)
+               : this.#setCloseCurtainTimer(); // prettier-ignore
   };
 
   #setCloseCurtainTimer() {
@@ -186,7 +183,7 @@ export default class RotaryCover extends BaseCanvas {
       if (posInRect(pos, this.#clickFields[i])) {
         if (i === this.#prevSelectedIndex) {
           this.#openCover();
-          this.#body.style.cursor = 'default';
+          this.#htmlBody.style.cursor = 'default';
           this.#gitButton.innerHTML = `
             <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
               <i class="fa-brands fa-github"></i>
@@ -239,12 +236,12 @@ export default class RotaryCover extends BaseCanvas {
     const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
     for (let i = 0; i < this.#clickFields.length; i++) {
       if (posInRect(pos, this.#clickFields[i])) {
-        this.#body.style.cursor !== 'pointer' && (this.#body.style.cursor = 'pointer'); //prettier-ignore
+        this.#htmlBody.style.cursor !== 'pointer' && (this.#htmlBody.style.cursor = 'pointer'); //prettier-ignore
         return;
       }
     }
 
-    this.#body.style.cursor !== 'default' && (this.#body.style.cursor = 'default'); //prettier-ignore
+    this.#htmlBody.style.cursor !== 'default' && (this.#htmlBody.style.cursor = 'default'); //prettier-ignore
   };
 
   #setTargetCover = (index) => {
@@ -325,11 +322,8 @@ export default class RotaryCover extends BaseCanvas {
     this.#toBeOpenedCurtain && this.#onOpenCurtain();
     this.#toBeClosedCurtain && this.#onCloseCurtain();
 
-    const animationStatus = this.#detailCover.animate();
-    this.#onDisappearFinished(animationStatus.disappearStatus);
-
-    const progressStatus = this.#progressBar.animate(curTime);
-    this.#onProgressFinished(progressStatus);
+    this.#detailCover.animate();
+    this.#progressBar.animate(curTime);
 
     this.#loadedProject && this.#loadedProject.animate(curTime);
     this.#introductionBanner.animate(curTime);
@@ -368,6 +362,7 @@ export default class RotaryCover extends BaseCanvas {
 
   #onOpenCurtain() {
     if (this.#backgroundCurtain.on()) {
+      this.#flagToSetRatio = true;
       this.#toBeOpenedCurtain = false;
       this.#setDetailCoverRatio(RotaryCover.SELECTED_MODE_RATIO, RotaryCover.DETAIL_MODE_RATIO); // prettier-ignore
 
@@ -393,6 +388,10 @@ export default class RotaryCover extends BaseCanvas {
 
   #setProgressTimer() {
     this.#progressTimerID = setTimeout(() => {
+      if (!this.#isDetailMode) {
+        return;
+      }
+
       this.#progressBar.start();
       this.#progressTimerID = INVALID_ID;
     }, RotaryCover.BUTTON_APPEAR_DURATION);
@@ -405,14 +404,14 @@ export default class RotaryCover extends BaseCanvas {
 
   #onCloseCurtain() {
     if (this.#backgroundCurtain.off()) {
-      this.#progressCanceled = false;
       this.#toBeClosedCurtain = false;
       this.#bottomButtons.style.display = 'flex';
 
       this.#addEventToSelectCover();
 
-      this.#isCoverDisappeared ? this.#setDetailCoverRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO)
-                               : this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
+      this.#isDetailMode || this.#flagToSetRatio
+        ? this.#detailCover.setTargetRatio(RotaryCover.DETAIL_MODE_RATIO,RotaryCover.SELECTED_MODE_RATIO)
+        : this.#setDetailCoverRatio(RotaryCover.INIT_RATIO, RotaryCover.SELECTED_MODE_RATIO); // prettier-ignore
     }
   }
 
@@ -422,28 +421,23 @@ export default class RotaryCover extends BaseCanvas {
     this.#detailCover.setTargetRatio(startRatio, targetRatio);
   }
 
-  #onProgressFinished(curStatus) {
-    if (!isDone(this.#prevProgressStatus) && isDone(curStatus)) {
-      this.#progressBar.clearCanvas();
-      this.#progressCanceled || this.#detailCover.disappearToLeft();
+  disappearDetailCover = () => {
+    if (this.#isDetailMode) {
+      this.#detailCover.disappearToLeft();
+      this.#flagToSetRatio = false;
+    }
+  };
+
+  setLoadProjectTimer = () => {
+    if (!this.#isDetailMode) {
+      return;
     }
 
-    this.#prevProgressStatus = curStatus;
-  }
-
-  #onDisappearFinished(curStatus) {
-    if (!isDone(this.#prevDisappearStatus) && isDone(curStatus)) {
-      this.#setLoadProjectTimer();
-    }
-    this.#prevDisappearStatus = curStatus;
-  }
-
-  #setLoadProjectTimer() {
     this.#loadProjectTimerID = setTimeout(() => {
       this.#LoadProject();
       this.#loadProjectTimerID = INVALID_ID;
     }, RotaryCover.BUTTON_APPEAR_DURATION);
-  }
+  };
 
   #killLoadProjectTimer() {
     clearTimeout(this.#loadProjectTimerID);

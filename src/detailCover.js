@@ -16,6 +16,8 @@ export default class DetailCover extends BaseCanvas {
     x: 0,
     y: 0,
   };
+  #prevDisappearStatus = DONE;
+  #onDisappearedHandler;
 
   constructor() {
     super(true);
@@ -34,10 +36,11 @@ export default class DetailCover extends BaseCanvas {
     isDone(this.#scaleStatus) || this.#onScale();
     isDone(this.#disappearStatus) || this.#onDisappear();
 
-    return {
-      scaleStatus: this.#scaleStatus,
-      disappearStatus: this.#disappearStatus,
-    };
+    if (isDone(this.#disappearStatus) && !isDone(this.#prevDisappearStatus)) {
+      this.#onDisappearedHandler && this.#onDisappearedHandler();
+    }
+
+    this.#prevDisappearStatus = this.#disappearStatus;
   }
 
   #onScale() {
@@ -51,6 +54,10 @@ export default class DetailCover extends BaseCanvas {
 
     this.#disappearSpeed *= DetailCover.DISAPPEAR_VELOCITY;
     this.#pos.x -= this.#disappearSpeed;
+  }
+
+  set onDisappearedHandler(handler) {
+    this.#onDisappearedHandler = handler;
   }
 
   #drawCover() {
