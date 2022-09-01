@@ -30,6 +30,7 @@ export default class TypingBanner {
       case Typing.MEDIUM_MODE:
         this.#stageWidth = 1300;
         this.#stageHeight = 500;
+        this.#typing.fontFormat = new FontFormat(400, 50, this.#fontName, this.#fontColor); // prettier-ignore
         this.#typing.setStartPos(55, 130);
         break;
       case Typing.REGULAR_MODE:
