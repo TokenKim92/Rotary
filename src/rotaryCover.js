@@ -152,6 +152,11 @@ export default class RotaryCover extends BaseCanvas {
     this.#bottomButtons.style.display = 'none';
     this.#toBeOpenedCurtain = true;
 
+    this.#gitButton.innerHTML = `
+    <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
+      <i class="fa-brands fa-github"></i>
+    </a>`; //prettier-ignore
+
     setTimeout(() => {
       window.addEventListener('click', this.#loadDirectlyProject);
     }, RotaryCover.BUTTON_APPEAR_DURATION);
@@ -193,15 +198,19 @@ export default class RotaryCover extends BaseCanvas {
   #setSelectedIndexOnClick = (clickEvent) => {
     const pos = { x: clickEvent.clientX, y: clickEvent.clientY };
 
+    if (posInRect(pos, this.#clickFields[this.#prevSelectedIndex])) {
+      this.#openCover();
+      this.#htmlBody.style.cursor = 'default';
+
+      return;
+    }
+
     for (let i = 0; i < this.#clickFields.length; i++) {
       if (posInRect(pos, this.#clickFields[i])) {
         if (i === this.#prevSelectedIndex) {
           this.#openCover();
           this.#htmlBody.style.cursor = 'default';
-          this.#gitButton.innerHTML = `
-            <a href='${this.#projectCovers[this.#prevSelectedIndex].url}' target='blank'>
-              <i class="fa-brands fa-github"></i>
-            </a>`; //prettier-ignore
+
           return;
         }
 
@@ -248,7 +257,19 @@ export default class RotaryCover extends BaseCanvas {
 
   #changeCursorShape = (mousemoveEvent) => {
     const pos = { x: mousemoveEvent.clientX, y: mousemoveEvent.clientY };
-    for (let i = 0; i < this.#clickFields.length; i++) {
+
+    if (posInRect(pos, this.#clickFields[this.#prevSelectedIndex])) {
+      this.#htmlBody.style.cursor !== 'pointer' && (this.#htmlBody.style.cursor = 'pointer'); //prettier-ignore
+      if (this.#prevIndexOnCover !== RotaryCover.INVALID_INDEX) {
+        this.#prevIndexOnCover = RotaryCover.INVALID_INDEX;
+        this.clearCanvas();
+        this.#drawCovers();
+      }
+
+      return;
+    }
+
+    for (let i = this.#clickFields.length - 1; i >= 0; i--) {
       if (posInRect(pos, this.#clickFields[i])) {
         this.#htmlBody.style.cursor !== 'pointer' && (this.#htmlBody.style.cursor = 'pointer'); //prettier-ignore
 
