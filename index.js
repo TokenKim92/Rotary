@@ -1,10 +1,10 @@
-import PortfolioCover from './src/portfolioCover.js';
-import RotaryCover from './src/rotaryCover.js';
+import PortfolioCover from './lib/portfolioCover.js';
 import Date from './lib/date.js';
 import './lib/typography-dot.min.js';
 import './lib/duplication.min.js';
 import './lib/sheep.min.js';
 import './lib/dotting.min.js';
+import './lib/rotary.min.js';
 
 window.onload = () => {
   const fontList = ['Abril Fatface', 'Fjalla One'];
