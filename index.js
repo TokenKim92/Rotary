@@ -48,7 +48,7 @@ window.onload = () => {
       .addProject(
         'Sheep',
         new Date('22', 'August', '2022'),
-        new Sheep(),
+        new Sheep('Fjalla One'),
         'https://github.com/TokenKim92/Sheep'
       )
       .build();
