@@ -4,6 +4,7 @@ export const INVALID_ID = -1;
 export const DONE = true;
 export const SMALL_MODE_RATIO = 0.5;
 export const LARGE_MODE_RATIO = 2;
+export const INVALID_INDEX = -1;
 
 export function posInRect(pos, rect) {
   if (

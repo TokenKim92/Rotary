@@ -1,6 +1,6 @@
 import { 
-  PI, INVALID_ID, DONE, posInRect, isDone, isInvalidID, 
-  SMALL_MODE_RATIO, LARGE_MODE_RATIO,
+  PI, INVALID_ID, posInRect, isDone, isInvalidID, 
+  SMALL_MODE_RATIO, LARGE_MODE_RATIO, INVALID_INDEX,
 } from './utils.js'; // prettier-ignore
 import DetailCover from './detailCover.js';
 import Curtain from './curtain.js';
@@ -55,6 +55,7 @@ export default class RotaryCover extends BaseCanvas {
 
   #flagToSetRatio = false;
   #isDetailMode = false;
+  #prevIndexOnCover = RotaryCover.INVALID_INDEX;
 
   constructor(projectCovers, projects) {
     super(true);
@@ -250,11 +251,23 @@ export default class RotaryCover extends BaseCanvas {
     for (let i = 0; i < this.#clickFields.length; i++) {
       if (posInRect(pos, this.#clickFields[i])) {
         this.#htmlBody.style.cursor !== 'pointer' && (this.#htmlBody.style.cursor = 'pointer'); //prettier-ignore
+
+        if (this.#prevIndexOnCover !== i) {
+          this.#prevIndexOnCover = i;
+          this.clearCanvas();
+          this.#drawCovers();
+        }
+
         return;
       }
     }
 
     this.#htmlBody.style.cursor !== 'default' && (this.#htmlBody.style.cursor = 'default'); //prettier-ignore
+    if (this.#prevIndexOnCover !== RotaryCover.INVALID_INDEX) {
+      this.#prevIndexOnCover = RotaryCover.INVALID_INDEX;
+      this.clearCanvas();
+      this.#drawCovers();
+    }
   };
 
   #setTargetCover = (index) => {
@@ -276,19 +289,21 @@ export default class RotaryCover extends BaseCanvas {
         y: this.#rotationAxis.y - this.#rotationRadius * Math.cos(radian)  
       } // prettier-ignore
 
-      this.#drawCover(projectCover.cover, rotationPos, radian);
+      const isMouseOnCover = this.#prevIndexOnCover === index;
+
+      this.#drawCover(projectCover.cover, rotationPos, radian, isMouseOnCover);
       this.#drawTitle(projectCover.cover, rotationPos, radian);
       this.#calculateClickFields(rotationPos);
     });
   }
 
-  #drawCover(cover, rotationPos, radian) {
+  #drawCover(cover, rotationPos, radian, isMouseOnCover) {
     this.ctx.save();
 
     this.ctx.translate(rotationPos.x, rotationPos.y);
     this.ctx.rotate(radian);
     this.isMatchMedia && this.ctx.scale(SMALL_MODE_RATIO, SMALL_MODE_RATIO); // prettier-ignore
-    cover.animate(this.ctx);
+    cover.animate(this.ctx, isMouseOnCover);
 
     this.ctx.restore();
   }

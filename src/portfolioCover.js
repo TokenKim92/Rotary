@@ -7,7 +7,7 @@ export default class PortfolioCover {
   };
   static FONT_NAME = 'Abril Fatface';
   static FONT_COLOR = 'rgb(255, 255, 255)';
-  static TEXT_PADDING = 20;
+  static TEXT_PADDING = 10;
   static MAIN_FONT_WIDTH = 20;
   static MAIN_FONT_SIZE = 30;
   static SUB_FONT_WIDTH = 8;
@@ -16,6 +16,7 @@ export default class PortfolioCover {
   static CONTACT_LINK = 'github.com/TokenKim92';
   static AUTHOR = 'Token Kim';
   static SHADOW_SIZE = 6;
+  static BRIGHTNESS_OFFSET = 30;
 
   #title;
   #sequenceNumber;
@@ -29,9 +30,9 @@ export default class PortfolioCover {
     this.#backgroundColor = backgroundColor;
   }
 
-  animate = (ctx) => {
+  animate = (ctx, isMouseOnCover = false) => {
     this.#drawShadow(ctx);
-    this.#drawBackground(ctx);
+    this.#drawBackground(ctx, isMouseOnCover);
     this.#drawContents(ctx);
   };
 
@@ -45,8 +46,18 @@ export default class PortfolioCover {
     );
   }
 
-  #drawBackground(ctx) {
-    ctx.fillStyle = this.#backgroundColor;
+  #drawBackground(ctx, isMouseOnCover) {
+    const color = isMouseOnCover
+      ? `rgb(
+      ${this.#backgroundColor.r + PortfolioCover.BRIGHTNESS_OFFSET}, 
+      ${this.#backgroundColor.g + PortfolioCover.BRIGHTNESS_OFFSET}, 
+      ${this.#backgroundColor.b + PortfolioCover.BRIGHTNESS_OFFSET})`
+      : `rgb(
+        ${this.#backgroundColor.r}, 
+        ${this.#backgroundColor.g}, 
+        ${this.#backgroundColor.b})`;
+
+    ctx.fillStyle = color;
     ctx.fillRect(
       PortfolioCover.COVER_RECT.x,
       PortfolioCover.COVER_RECT.y,

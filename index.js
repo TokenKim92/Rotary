@@ -84,15 +84,11 @@ class AppBuilder {
     const color = AppBuilder.COLOR_LIST[colorIndex];
 
     this.#projectCovers.push({
-      cover: new PortfolioCover(
-        title,
-        `0${this.#count + 1}`,
-        date,
-        `rgb(
-          ${color.r + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex}, 
-          ${color.g + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex}, 
-          ${color.b + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex})`
-      ),
+      cover: new PortfolioCover(title, `0${this.#count + 1}`, date, {
+        r: color.r + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex,
+        g: color.g + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex,
+        b: color.b + AppBuilder.BRIGHTNESS_INTERVAL * brightnessIndex,
+      }),
       url: url,
     });
 
