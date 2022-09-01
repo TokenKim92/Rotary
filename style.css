@@ -147,7 +147,7 @@ button {
 
 .main-git,
 .main-linkedin,
-.about-me {
+.introduce {
   font-family: 'Abril Fatface', cursive;
   font-size: 18px;
   color: #6d6d6d;
@@ -156,7 +156,7 @@ button {
 
 .main-git:hover,
 .main-linkedin:hover,
-.about-me:hover {
+.introduce:hover {
   color: var(--button-hover-color);
 }
 
@@ -178,7 +178,7 @@ button {
 
   .main-git,
   .main-linkedin,
-  .about-me {
+  .introduce {
     font-size: 14px;
   }
 

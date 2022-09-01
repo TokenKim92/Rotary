@@ -40,7 +40,7 @@ export default class RotaryCover extends BaseCanvas {
   #bottomButtons;
   #closeCoverButton;
   #gitButton;
-  #aboutMeButton;
+  #introduceButton;
   #toBeOpenedCurtain = false;
   #toBeClosedCurtain = false;
 
@@ -71,7 +71,7 @@ export default class RotaryCover extends BaseCanvas {
     this.#bottomButtons = document.querySelector('.bottom-buttons');
     this.#closeCoverButton = document.querySelector('.close-cover');
     this.#gitButton = document.querySelector('.git');
-    this.#aboutMeButton = document.querySelector('.about-me');
+    this.#introduceButton = document.querySelector('.introduce');
     this.#htmlBody = document.querySelector('body');
 
     this.#backgroundCurtain = new Curtain();
@@ -86,7 +86,7 @@ export default class RotaryCover extends BaseCanvas {
 
     window.addEventListener('resize', this.resize);
     this.#closeCoverButton.addEventListener('click', this.#closeCover);
-    this.#aboutMeButton.addEventListener('click', () =>{
+    this.#introduceButton.addEventListener('click', () =>{
       
       this.#introductionBanner.initTyping();
       this.#introductionBanner.setMessage();
