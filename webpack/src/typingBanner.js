@@ -41,9 +41,9 @@ export default class TypingBanner {
         break;
       case Typing.SMALL_MODE:
         this.#stageWidth = 340;
-        this.#stageHeight = 460;
+        this.#stageHeight = 470;
         this.#typing.fontFormat = new FontFormat(400, 26, this.#fontName, this.#fontColor); // prettier-ignore
-        this.#typing.setStartPos(20, 60);
+        this.#typing.setStartPos(20, 40);
         borderRadius = 10;
         break;
       default:
