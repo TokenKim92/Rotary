@@ -205,7 +205,7 @@ export default class RotaryCover extends BaseCanvas {
       return;
     }
 
-    for (let i = 0; i < this.#clickFields.length; i++) {
+    for (let i = this.#clickFields.length - 1; i >= 0; i--) {
       if (posInRect(pos, this.#clickFields[i])) {
         if (i === this.#prevSelectedIndex) {
           this.#openCover();
