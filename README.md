@@ -37,7 +37,6 @@ This video is under this link: https://youtu.be/cpEeqACsF_Q
   <img src="./imgs/rotary1.png" alt="Rotary"/>
   <img src="./imgs/rotary2.png" alt="Rotary"/>
   <img src="./imgs/rotary3.png" alt="Rotary"/>
-  <img src="./imgs/rotary4.png" alt="Rotary"/>
 
 ## Page
 
